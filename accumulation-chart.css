@@ -1,0 +1,37 @@
+div.content {
+    width: 960px;
+}
+
+html {
+    font-size: 24px;
+}
+
+p {
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+table {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 24px;
+}
+
+.bar-chart {
+    background-color: #47D9D9;
+}
+
+.myButton {
+    font-size: 24px;
+}
+
+div.tooltip {	
+    position: absolute;			
+    text-align: center;			
+    width: 280px;					
+    padding: 2px;				
+    font: 18px sans-serif;		
+    background: white;	
+    border: 1px solid black;		
+    border-radius: 8px;			
+    pointer-events: none;			
+}
+

@@ -1,0 +1,216 @@
+<!-- from https://medium.freecodecamp.org/how-to-create-your-first-bar-chart-with-d3-js-a0e8ea2df386 -->
+
+<html>
+    <head>
+        <link rel="stylesheet" href="accumulation-chart.css">
+        <title>Accumulation charts for Ranked-Choice (Instant-Runoff) Voting</title>
+    </head>
+    <body>
+      <div class="content">
+        <h1>Accumulation charts for Ranked-Choice (Instant-Runoff) Voting</h1>
+	<h2>Bridget Tenner and Greg Warrington</h2>
+
+        <!-- <svg class="bar-chart"></svg> -->
+        
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+	<script src="elec-data.js"></script>
+
+	<script>
+	  // my first javascript. :)
+	  var svgWidth = 960; 
+	  var svgHeight = 800
+	  //var barPadding = 5;
+	  var xOffset = 150;
+	  var yOffset = 50;
+
+//	  col_arr = ["#8dd3c7","#ffffb3","#bebada","#fb8072","#80b1d3","#fdb462","#b3de69","#fccde5","#d9d9d9","green","red","orange","blue","brown","pink","yellow","gray","white"]
+//	  col_arr = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58","green","red","orange","blue","brown","pink","yellow","gray","white"]
+	</script>
+
+	<h3>What is this page about?</h3>
+	<p>
+	Ranked-choice voting is an algorithm for determining a winner
+	from ballots in which each voter is allowed to rank the
+	candidates from favorite to least favorite. (We'll use
+	ranked-choice and instant-runoff as synonyms on this page.) We
+	have found the visualizations of elections held under
+	ranked-choice voting to be unsatisfactory in various
+	respects. An <i>accumulation chart</i> attempts to fix this by
+	displaying both the ballots and the logic of the algorithm in
+	the familiar format of a bar chart.</p>
+
+	<p>Below are accumulation charts for several historical
+	elections. For instance, the default election shown is the
+	November, 2018 election for Maine's 2nd congressional
+	district. Depending on the browser you're using, you should be
+	able to hover to get tooltips and/or zoom the below
+	chart. (The zooming is not perfect; if it gets confusing just
+	select a different election to reset.) See lower on this page
+	for both an explanation of ranked-choice voting as well as how
+	to read the chart.</p>
+
+	<p> You can read
+	an <a href="https://arxiv.org/abs/1903.06095">arxiv
+	preprint</a> for a full explanation.<p>
+
+	<!-- Initialize a select button -->
+	Election: <select id="selectButton" class="myButton"></select><br>
+
+	var x = document.createElement("INPUT");
+	x.setAttaribute("type", "radio");
+	
+	Display mode: <select id="modeRadio" class="myMode"></select>
+	Color palette: <select id="colorButton" class="myButton"></select>
+
+<!-- 	<\!-- Initialize a select button -\-> -->
+<!-- 	<button id="resetButton" class="resetButton">Reset zoom</button> -->
+
+<!-- 	<script> -->
+<!-- $("#resetButton").click(() => { -->
+<!--   gElem.transition() -->
+<!--     .duration(750) -->
+<!--     .call(zoom.transform, d3.zoomIdentity); -->
+<!-- }); -->
+<!-- </script> -->
+
+	<!-- Create a div where the graph will take place -->
+	<div id="acc_chart" align="right"></div>
+
+        <script src="accumulation-chart.js"></script>
+
+	<i>Note: The data we use to create these charts may differ
+	slightly from the final, certified data. Also, there are
+	different, reasonable choices as to how to deal with the
+	various imperfect types of ranked ballots. As these charts are
+	to illustrate Accumulation Charts, we have not made a
+	determined effort to track down the specific rules used for
+	each election.</i>
+
+	<h3>How does the ranked-choice algorithm work?</h3>
+	<p>
+	The algorithm proceeds in rounds. At the end of each round,
+	one candidate is eliminated. The algorithm stops when there
+	are only two candidates remaining.<p>
+
+	To determine who gets eliminated in a round, the ballots are
+	sorted into piles according to the highest-ranked candidate
+	not yet eliminated. For example, in the Maine election shown
+	above, there are four candidates, Hoar's pile has 6,875 votes,
+	Bond's has 16,552, Poliquin's has 134,184 votes and Golden's
+	has 132,013 votes. Try hovering over the rightmost portions of
+	each bar above. If everything is working, you'll see tooltips
+	displaying these values for each candidate.<p>
+
+	Since Hoar has the fewest votes, the ranked-choice algorithm
+	directs that Hoar is eliminated at the end of Round 1. Hoar's
+	name is stricken from each of the 6,875 ballots, and these
+	ballots are redistributed to the second-ranked candidates. It
+	turns out that 2,621 of the voters prefer Bond among the
+	remaining three candidates, 889 prefer Poliquin, and 1,203
+	prefer Golden. If you're keeping track, you'll note that these
+	only add up to 4,713 votes. The remaining 2,162 did not
+	indicate a valid second-choice candidate and get set
+	aside. Again, if hovering over the chart works, you'll see
+	these numbers displayed over the portions just to the left of
+	the Round-1 portions of each bar.<p>
+
+	The process continues in this manner until there are only two
+	candidates remaining. The candidate with the most votes at
+	this point is declared the winner.<p>
+
+	<h3>How is an accumulation chart read?</h3>  
+	<p>
+	If you followed the explanation appearing in the above
+	discription of the ranked-choice algorithm then you already
+	know most of it. The candidates are sorted in order of
+	elimination, with the candidate who gets eliminated in the
+	first round on the bottom and the ultimate winner on the top.
+	The length of each bar indicates the total number of votes
+	garnered by each candidate up to the round in which they are
+	eliminated (or declared the winner).<p>
+
+	Because candidates accumulate votes during different rounds,
+	the bars are subdivided into horizontal segments. The
+	rightmost segment corresponds to the votes declaring a given
+	candidate as overall favorite. The next segment to the left
+	includes votes for which that candidate is the favorite after
+	one candidate has been eliminated, and so on.<p>
+
+	Segments are colored from top-to-bottom to indicate the
+	partial rankings encoded in a given batch of votes. Each
+	candidate is represented by a color. You can determine the
+	color just by looking at the rightmost portions of each
+	bar. So, for example, Bond is represented by lavender in the
+	Maine election. The portion of Bond's bar that is salmon on
+	top and lavender on the bottom corresponds to votes in which
+	Hoar was the top-ranked candidate and Bond was the
+	second-ranked candidate. The lower-ranked candidates are not
+	displayed. After Bond gets eliminated, some of these votes
+	will go to Poliquin and some to Golden. For example, the
+	portion of Golden's that is the second from the left indicates
+	that 1,362 voters preferred Hoar as their first choice, Bond
+	as their second choice, and Golden as their third choice, as
+	indicated by the portion of the bar with salmon (Hoar) on top,
+	followed by lavender (Bond) in the middle, and turqouise
+	(Golden) on the bottom. The leftmost portion of Golden's bar,
+	with lavender on top, corresponds to 3,027 ballots that were
+	never allocated to Hoar since Hoar (salmon) was eliminated
+	before Bond (lavender) was.<p>
+
+	<h3>Why does the design make it hard to compare Round-1 votes?</h3>
+	<p>
+	Voters act differently in ranked-choice systems than they do
+	in plurality systems. In general, comparing Round-1 votes can
+	be very misleading. Take, for example, the following
+	election:</p>
+	<table>
+	  <tr>
+	    <th> Ranking </th>
+	    <th> Number of ballots </th>
+	  </tr>
+	  <tr>
+	    <td> A > C </td>
+	    <td> 90 </td>
+	  </tr>
+	  <tr>
+	    <td> B > C </td>
+	    <td> 100 </td>
+	  </tr>
+	  <tr>
+	    <td> C > A </td>
+	    <td> 20 </td>
+	  </tr>
+	</table>
+	<p>
+	In Round 1, B has the most first-round votes with 100, A comes
+	in second at 90 and C is a distant third with 20. But everyone
+	who voted for C first prefers A as the second choice, so in
+	Round 2, Candidate wins 110 to 100. The 100 to 90 lead of
+	Candidate B in Round 1 is inconclusive. A natural, common
+	conclusion is that B would've won under a traditional,
+	plurality vote. But the 20 ballots ranking C then A suggest
+	that under a plurality vote many of those voters would've
+	haven voted for Candidate A to avoid wasting their vote on C.
+	The entire argument for instant-runoff voting is that
+	important information about voter preferences is contained in
+	the lower-ranked preferences. Ignoring that information, as
+	you do when looking only at first-round totals, can lead to
+	very misleading conclusions.</p>
+
+	<p>
+	Looking at the first-round votes is like looking at who is
+	leading a one mile race after the first quarter mile. It's
+	undeniably informative, and probably predictive, but in the
+	long run it doesn't determine the winner. The rules of a
+	one-mile race are that the first runner to complete the full
+	mile wins just as the rules of instant-runoff voting dictate
+	that the winner is the candidate who survives to the last
+	round and has the most votes at that point. What the
+	ranked-choice algorithm cares about is who has the fewest
+	votes during each round (and who is therefore
+	eliminated). That's what we've focused on in the accumulation
+	charts.</p>
+
+	</div>
+    </body>
+</html>
