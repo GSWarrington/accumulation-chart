@@ -1,12 +1,40 @@
-div.content {
-    width: 960px;
+/* this is the container holding all of the svg drawing */
+div#newcontainer {
+        height: 600px;
+        width: 1024px;
+        border:2px solid #000;
+        overflow: scroll;
+	background-color: #0000ee;
+      }
+
+div#datanote {
+    width: 1024px;
+}
+/* svg#newsky { */
+/*   height: 100px; */
+/*   width: 1100px; */
+/*   border:1px dotted #ccc; */
+/*   background-color: #c00; */
+/* } */
+
+/* div#container { */
+/*     width: 960px; */
+/*     height: 300px; */
+/*     overflow: scroll; */
+/* } */
+
+svg#mysvg {
+    height: 5000px;
+    width: 1200px;
+    background-color: #eeeeee;
+    overflow: scroll;
 }
 
 html {
     font-size: 24px;
 }
 
-p {
+p,html {
   font-family: Helvetica, Arial, sans-serif;
 }
 
@@ -35,3 +63,79 @@ div.tooltip {
     pointer-events: none;			
 }
 
+/* collapsibles */
+/* Code for collapsible from https://alligator.io/css/collapsible/ */
+
+.wrap-collabsible {
+  margin-bottom: 1.2rem 0;
+}
+
+input[type='checkbox'] {
+  display: none;
+}
+
+.lbl-toggle {
+  display: block;
+
+  font-weight: bold;
+  /* font-family: monospace; */
+  font-size: 1.2rem;
+  /* text-transform: uppercase; */
+  /* text-align: center; */
+
+  padding: 0.2rem;
+
+  /* color: #A77B0E; */
+  /* background: #FAE042; */
+
+  cursor: pointer;
+
+  border-radius: 7px;
+  transition: all 0.25s ease-out;
+}
+
+.lbl-toggle:hover {
+    color: #a6cee3;
+}
+
+.lbl-toggle::before {
+  content: ' ';
+  display: inline-block;
+
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 5px solid currentColor;
+  vertical-align: middle;
+  margin-right: .7rem;
+  transform: translateY(-2px);
+
+  transition: transform .2s ease-out;
+}
+
+.toggle:checked + .lbl-toggle::before {
+  transform: rotate(90deg) translateX(-3px);
+}
+
+.collapsible-content {
+  max-height: 0px;
+  overflow: hidden;
+  transition: max-height .25s ease-in-out;
+}
+
+.toggle:checked + .lbl-toggle + .collapsible-content {
+  max-height: 5000px;
+  max-width: 1024px;
+}
+
+.toggle:checked + .lbl-toggle {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.collapsible-content .content-inner {
+    background: #eeeeee; 
+    border-bottom: 1px solid #eeeeee; 
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 7px;
+    padding: .5rem 1rem;
+}
