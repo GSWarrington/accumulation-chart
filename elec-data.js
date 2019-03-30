@@ -19,9 +19,18 @@ var elec_dict = {"2018 Maine 2nd CD": me_data,
 		 "2009 Burlington, VT mayoral": bfp_data,
 		 "2018 San Francisco, CA mayoral": sfo_data,
 		 "2013 Minneapolis, MN mayoral": mn_data,
+		 "2018 Maine gubernatorial primary": meprim_data,
 		 "Sample Election": example1_data};
 var elec_keys = Object.keys(elec_dict);
 var elec_values = Object.keys(elec_dict).map(function(key){
     return elec_dict[key];
 });
 
+var color_dict = {"Ranking": "crank",
+		 "Round accumulated": "cround",
+		 "First choice": "cfirst",
+		  "Candidate": "ccand"};
+var color_keys = Object.keys(color_dict);
+var color_values = Object.keys(color_dict).map(function(key){
+    return color_dict[key];
+});

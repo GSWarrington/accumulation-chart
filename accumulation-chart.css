@@ -4,10 +4,10 @@ div#newcontainer {
         width: 1024px;
         border:2px solid #000;
         overflow: scroll;
-	background-color: #0000ee;
+	background-color: #eeeeee;
       }
 
-div#datanote {
+div#datanote, div#colorscheme, div#colorexp {
     width: 1024px;
 }
 /* svg#newsky { */
@@ -47,7 +47,7 @@ table {
     background-color: #47D9D9;
 }
 
-.myButton {
+.myButton,.myMenu {
     font-size: 24px;
 }
 

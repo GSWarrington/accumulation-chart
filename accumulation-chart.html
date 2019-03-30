@@ -1,56 +1,56 @@
 <!-- adapted from https://medium.freecodecamp.org/how-to-create-your-first-bar-chart-with-d3-js-a0e8ea2df386 -->
 
 <html>
-    <head>
-        <link rel="stylesheet" href="accumulation-chart.css">
-        <title>Accumulation charts for Ranked-Choice (Instant-Runoff) Voting</title>
-    </head>
-    <body>
-      <div class="content">
-        <h1>Accumulation charts for Ranked-Choice (Instant-Runoff) Voting</h1>
+  <head>
+    <link rel="stylesheet" href="accumulation-chart.css">
+    <title>Accumulation charts for Ranked-Choice (Instant-Runoff) Voting</title>
+  </head>
+  <body>
+    <div class="content">
+      <h1>Accumulation charts for Ranked-Choice (Instant-Runoff) Voting</h1>
 
-	<h3><i>This page is an introduction to ideas explained in our (<a href="http://math.depaul.edu/bridget/">Bridget Tenner</a> and <a href="http://www.cems.uvm.edu/~gswarrin/">Greg Warrington</a>) <a href="https://arxiv.org/abs/1903.06095">preprint</a></i>. </h3>
+      <h3><i>This page is an introduction to ideas explained in our (<a href="http://math.depaul.edu/bridget/">Bridget Tenner</a> and <a href="http://www.cems.uvm.edu/~gswarrin/">Greg Warrington</a>) <a href="https://arxiv.org/abs/1903.06095">preprint</a></i>. </h3>
 
-        <script src="https://d3js.org/d3.v4.min.js"></script>
-	<script src="elec-data.js"></script>
+      <script src="https://d3js.org/d3.v4.min.js"></script>
+      <script src="elec-meprim.js"></script>
+      <script src="elec-data.js"></script>
 
-	<!-- Code for collapsible adapted from https://alligator.io/css/collapsible/ -->
-	<div class="wrap-collabsible">
-	  <input id="collapsible-what" class="toggle" type="checkbox">
-	  <label for="collapsible-what" class="lbl-toggle">What is this page about?</label>
-	  <div class="collapsible-content">
-	    <div class="content-inner">
-	      <p>
-		An <i>accumulation chart</i> is a graphic for displaying the results
-		of an election held under ranked-choice/instant-runoff voting. (We'll
-		use "ranked-choice" and "instant-runoff" interchangeably on this
-		page.) The goals of this page are two-fold:
-		<ul>
-		  <li> To explain how to read an accumulation chart.
-		  <li> To convince you that several common approaches
-		    to illustrating the results of ranked-choice
-		    voting elections are un-illuminating and/or
-		    misleading.
-		</ul>
-
-	      <p>Below are accumulation charts for several historical
-		elections. For instance, the default election shown is the
-		November, 2018 election for Maine's 2nd congressional
-		district. Depending on the browser you're using, you should be
-		able to hover to get tooltips and/or zoom the below chart.</p>
-	      </p>
-	    </div>
+      <!-- Code for collapsible adapted from https://alligator.io/css/collapsible/ -->
+      <div class="wrap-collabsible">
+	<input id="collapsible-what" class="toggle" type="checkbox">
+	<label for="collapsible-what" class="lbl-toggle">What is this page about?</label>
+	<div class="collapsible-content">
+	  <div class="content-inner">
+	    <p>
+	      An <i>accumulation chart</i> is a graphic for displaying the results
+	      of an election held under ranked-choice/instant-runoff voting. (We'll
+	      use "ranked-choice" and "instant-runoff" interchangeably on this
+	      page.) The goals of this page are two-fold:
+	      <ul>
+		<li> To explain how to read an accumulation chart.
+		<li> To convince you that several common approaches
+		  to illustrating the results of ranked-choice
+		  voting elections are un-illuminating and/or
+		  misleading.
+	      </ul>
+	      
+	    <p>Below are accumulation charts for several historical
+	      elections. For instance, the default election shown is the
+	      November, 2018 election for Maine's 2nd congressional
+	      district. Depending on the browser you're using, you should be
+	      able to hover to get tooltips and/or zoom the below chart.</p>
+	    </p>
 	  </div>
 	</div>
+      </div>
 
-	<!-- Code for collapsible adapted from https://alligator.io/css/collapsible/ -->
-	<div class="wrap-collabsible">
-	  <input id="collapsible-short" class="toggle" type="checkbox">
-	  <label for="collapsible-short" class="lbl-toggle">How is an accumulation chart read? (short version)</label>
-	  <div class="collapsible-content">
-	    <div class="content-inner">
-	      <p>
-		<p>
+      <!-- Code for collapsible adapted from https://alligator.io/css/collapsible/ -->
+      <div class="wrap-collabsible">
+	<input id="collapsible-short" class="toggle" type="checkbox">
+	<label for="collapsible-short" class="lbl-toggle">How is an accumulation chart read? (short version)</label>
+	<div class="collapsible-content">
+	  <div class="content-inner">
+	    <p>
 		An accumulation chart is a bar chart with one bar for
 		each candidate. The top candidate is listed first. The
 		remaining candidates are listed in reverse order of
@@ -358,6 +358,14 @@
 	      elections show the results on a round-by-round basis;
 	      candidates already eliminated will show zero votes in
 	      such a depiction.</p>
+
+	      <b>Other visualizations</b>
+
+	      <p>
+	      There are many additional ways to focus on particular
+	      aspects of the data encoded by the voters'
+	      rankings. Some examples can be found <a href="https://ranked.vote/us/me/2018/11/cd02/">here</a>.</p>
+
 	    </div>
 	  </div>
 	</div>
@@ -428,7 +436,9 @@
 	<p>Interactive accumulation charts for historical elections: 
 	<!-- Initialize a select button -->
 	<select id="selectButton" class="myButton"></select></p>
+	<p>Color ballots by: <select id="colorMenu" class="myMenu"></select> (descriptions below chart)</p>
 
+	<!-- <i>Options for how the data are displayed are located below the chart</i> -->
 	<!-- var x = document.createElement("INPUT"); -->
 	<!-- x.setAttaribute("type", "radio"); -->
 	
@@ -462,7 +472,6 @@
 <!-- </script> -->
 
 	<!-- Create a div where the graph will take place -->
-	<!-- <div id="acc_chart" align="left"></div>  -->
 	<div id="newcontainer" align="left"></div>
 
         <script src="accumulation-chart.js"></script>
@@ -475,9 +484,30 @@
 	to illustrate Accumulation Charts, we have not made a
 	determined effort to track down the specific rules used for
 	each election.</i>
-	</div>
 
-
+	<br>
+	<br>
+	<b>Options for how ballots are colored:</b>
+	<ul>
+	  <li> <b>Color ballots by ranking:</b> This is the default option and what is described in all
+	  of the material at the top of this web page.
+	  <li> <b>Color ballots by round accumulated:</b> With this color scheme, the coloring reflects the
+	  divisions made by the black tick marks. It highlights how
+	  many votes each candidate accumulated in each round.
+	  <li> <b>Color ballots by first choice:</b>
+	  With this color scheme, each ballot is permanently
+	  colored according to the first-choice preference that
+	  appears on it.
+	    <li><b>Color ballots only by candidate:</b> This color
+	      scheme, the height of the bar for any given ballot
+	      indicates how low of a preference that candidate
+	      was. This is similar to the default color scheme, except
+	      that the colors for already-eliminated candidates are
+	      surpressed. A full-height bar indicates first choice,
+	      half-height indicates second choice, third-height
+	      indicates third choice, etc.
+	</ul>
 	</div>
-    </body>
+	
+</body>
 </html>
