@@ -27,10 +27,11 @@ var elec_values = Object.keys(elec_dict).map(function(key){
 });
 
 var color_dict = {"Ranking": "crank",
-		 "Round accumulated": "cround",
 		 "First choice": "cfirst",
 		  "Candidate": "ccand"};
 var color_keys = Object.keys(color_dict);
 var color_values = Object.keys(color_dict).map(function(key){
     return color_dict[key];
 });
+
+//		  "Round accumulated (n": "cround"};
