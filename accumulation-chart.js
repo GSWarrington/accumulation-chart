@@ -543,6 +543,7 @@ function make_chart(mydata) {
 	"#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00",
 	"#cab2d6","#6a3d9a","#ffff99","#b15928","#76cee3","#1f58b4","#92df8a","#33702c",
 	"#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486",
+	"#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486",
 	"#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486"];
 
 	// "#8dd3c7","#ffffb3","#bebada","#fb8072","#80b1d3","#fdb462","#b3de69","#fccde5",
@@ -609,7 +610,7 @@ function make_chart(mydata) {
 	    } else if (selectedColorMode == "cfirst") {
 		curX = draw_bar_round_first(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,SortedCandidates);
 	    } else {
-		curX = draw_bar_round_roundacc(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,SortedCandidates);
+		curX = draw_bar_round_roundacc(mysvg,numRows-row,key,value,xFactor,curX,curY,filteredSegment,SortedCandidates);
 	    }
 
 	    // Add in seperators between segments
