@@ -1,64 +1,27 @@
+// my first javascript. :)
 
-// <form id="displayMode">
-//   <input type='radio' id="showRanked" name="mode" checked>Color ballots by ranking</input>
-//   <input type='radio' id="showRounds" name="mode">Color ballots by round accumulated</input>
-//   <input type='radio' id="showFirst" name="mode">Color ballots by first choice</input>
-// </form>
+////////////////////////////////////////
+// general layout parameters (in pixels)
 
-// var form = document.getElementById("dimensions")
-// var form_val;
-// for(var i=0; i<form.length; i++){
-//     if(form[i].checked){
-//         form_val = form[i].id;}}
+var rowH = 50;       // row height - keep constant and just overflow window if necessary
+var yDiff = 80;      // spacing between bars
 
-// d3.selection.prototype.checked = function(value) {
-//   return arguments.length < 1
-//       ? this.property("checked")
-//       : this.property("checked", !!value);
-// };
+var xOffset = 150;   // offset to make space for candidate names
+var yOffset = 50;    // offset to leave a margin at the top
 
-var rowH = 50; // keep constant and just overflow if necessary
-var yDiff = 80; // spacing between bars
+var svgWidth = 960;  // width of display window
+var svgHeight = 800  // height of display window
+
+var end_separators = true; // whether to place separators at end of the bar
+
+// for tooltips (which place a candidate was ranked)
+var nth_list = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th","11th","12","13th","14th","15th"];
 
 var colorm = document.getElementsByName("colorMode");
 var selectedOption = d3.select("#selectButton").property("value");
 var selectedColorMode = "crank"; // color_dict[d3.select("#colorMenu").property("value")];
-// console.log("asdf asdf",selectedColorMode.length);
 
-// var asdf = d3.selectAll("input[type=radio]");
-// console.log("....  ..  ...",asdf.length);
-
-// asdf.on('change', function(d) {
-//     console.log('button changed to ' + this.value);
-//     selectedColorMode = this.value;
-// });
-
-// var checks = d3.selectAll("input[type=radiox]").checked(true);
-// console.log("-----",checks[0]);
-
-// for(var i = 0; i < colorm.length; i++) {
-//    if(colorm[i].checked)
-//        selectedColorMode = colorm[i].value;
-//  }
-
-var end_separators = false;
-
-// my first javascript. :)
-var svgWidth = 960; 
-var svgHeight = 800
-
-//var barPadding = 5;
-var xOffset = 150;
-var yOffset = 50;
-
-// keeps tracking of which coloring mode to use
-// hooks in to update everything if a different radio button is selected
-// var dataCol = d3.select("#colorMode")
-// dataCol.on("change", update)
-
-// var chartDiv = document.getElementById("acc_chart");
-//var svgWidth = 900; // chartDiv.clientWidth*5/6;
-
+// https://stackoverflow.com/questions/4878756/how-to-capitalize-first-letter-of-each-word-like-a-2-word-city
 function myTitleCase(mystr) {
     return mystr.toLowerCase()
 	.split(' ')
@@ -66,37 +29,8 @@ function myTitleCase(mystr) {
 	.join(' ');
 }
 
-function wrapText(text, maxChars) {
-        var ret = [];
-        var words = text.split(/\b/);
-
-        var currentLine = '';
-        var lastWhite = '';
-        words.forEach(function(d) {
-            var prev = currentLine;
-            currentLine += lastWhite + d;
-
-            var l = currentLine.length;
-
-            if (l > maxChars) {
-                ret.push(prev.trim());
-                currentLine = d;
-                lastWhite = '';
-            } else {
-                var m = currentLine.match(/(.*)(\s+)$/);
-                lastWhite = (m && m.length === 3 && m[2]) || '';
-                currentLine = (m && m.length === 3 && m[1]) || currentLine;
-            }
-        });
-
-        if (currentLine) {
-            ret.push(currentLine.trim());
-        }
-
-        return ret.join("\n");
-    }
-
-// Dynamic Width (Build Regex)
+// https://stackoverflow.com/questions/14484787/wrap-text-in-javascript
+// wrap text by adding newlines
 function myWrap(s, w) {
 	return s.replace(
 	    new RegExp(`(?![^\\n]{1,${w}}$)([^\\n]{1,${w}})\\s`, 'g'), '$1\n');
@@ -117,9 +51,6 @@ var mysvg = d3.select('#newcontainer')
     .append("g");
 
 var gElem = mysvg.append("g").call(zoom);
-
-// for tooltips
-var nth_list = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th","11th","12","13th","14th","15th"];
 
 // Define the div for the tooltip
 var div = d3.select("body").append("div")	
@@ -170,7 +101,7 @@ function default_tooltip_str(myrks) {
 
 function cand_tooltip_str(myrks) {
     var preflist = myrks;
-    console.log("myr: ",myrks);
+    // console.log("myr: ",myrks);
     var formlist = [myTitleCase(preflist[preflist.length-1])];
     formlist.push(" " + nth_list[preflist.length-1]);
     // //for (idx = 0; idx < preflist.length-1; idx++) {
@@ -189,7 +120,7 @@ function cand_tooltip_str(myrks) {
 
 function first_tooltip_str(myrks) {
     var preflist = myrks;
-    console.log("myr: ",myrks);
+    // console.log("myr: ",myrks);
     var formlist = [myTitleCase(preflist[0])];
     formlist.push(" " + nth_list[0]);
     // //for (idx = 0; idx < preflist.length-1; idx++) {
@@ -234,7 +165,7 @@ function default_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr) {
 function cand_only_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr) {
     rkY = rkY + (rks.length-1)*rkH
     j = rks.length - 1
-    console.log("adding: ",newX,rkY,Math.max(0,curX-newX));
+    // console.log("adding: ",newX,rkY,Math.max(0,curX-newX));
     mysvg.append("rect")
 	.attr("x", newX)
 	.attr("y", rkY)
@@ -260,7 +191,7 @@ function cand_only_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr) {
 function first_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr) {
     rkY = rkY;
     j = 0;
-    console.log("adding: ",newX,rkY,Math.max(0,curX-newX));
+    // console.log("adding: ",newX,rkY,Math.max(0,curX-newX));
     mysvg.append("rect")
 	.attr("x", newX)
 	.attr("y", rkY)
@@ -286,7 +217,7 @@ function first_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr) {
 function roundacc_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr,row,SortedCandidates) {
     rkY = rkY;
     j = 0;
-    console.log("adding: ",row,SortedCandidates[row-1][0],newX,rkY,Math.max(0,curX-newX));
+    // console.log("adding: ",row,SortedCandidates[row-1][0],newX,rkY,Math.max(0,curX-newX));
     mysvg.append("rect")
 	.attr("x", newX)
 	.attr("y", rkY)
@@ -310,7 +241,7 @@ function roundacc_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr,row,SortedCandid
 }
 
 function round_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr,curColor) {
-    console.log("here i am: ",row,colDict[row-1],colDict);
+    // console.log("here i am: ",row,colDict[row-1],colDict);
     // j = rks.length-1;
     mysvg.append("rect")
 	.attr("x", newX)
@@ -352,7 +283,7 @@ function draw_bar_round(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,So
 		var rkY = curY;
 		var rkH = rowH/rks.length;
 		
-		console.log("select color mode: ",selectedColorMode);
+		// console.log("select color mode: ",selectedColorMode);
 		if (selectedColorMode == "crank") {
 		    rvalue.FormattedRanks = default_tooltip_str(rks);
 		    var mystr = myTitleCase(value[0]) + " accumulated " + rvalue.Number.toLocaleString('en-US') + " votes in Round " + rvalue.Segment.toString() + " that ranked<br/>" + rvalue.FormattedRanks
@@ -360,7 +291,7 @@ function draw_bar_round(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,So
 		} else if (selectedColorMode == "cround") {
 		    rvalue.FormattedRanks = default_tooltip_str(rks);
 		    var mystr = myTitleCase(value[0]) + " accumulated " + rvalue.Number.toLocaleString('en-US') + " votes in Round " + rvalue.Segment.toString() + " that ranked<br/>" + rvalue.FormattedRanks
-		    console.log("round: ",row,SortedCandidates[row],SortedCandidates[row]['key']);
+		    // console.log("round: ",row,SortedCandidates[row],SortedCandidates[row]['key']);
 		    if (row > 1) {
 			round_ballots_add(mysvg,rks,newX,rkY,curX,rowH,mystr,colDict[SortedCandidates[row][0]]);
 		    } else {
@@ -369,7 +300,7 @@ function draw_bar_round(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,So
 		} else if (selectedColorMode == "cfirst") {
 		    rvalue.FormattedRanks = first_tooltip_str(rks);
 		    var mystr = myTitleCase(value[0]) + " accumulated " + rvalue.Number.toLocaleString('en-US') + " votes in Round " + rvalue.Segment.toString() + " that ranked<br/>" + rvalue.FormattedRanks
-		    console.log("round: ",row,SortedCandidates[row],SortedCandidates[row]['key']);
+		    // console.log("round: ",row,SortedCandidates[row],SortedCandidates[row]['key']);
 		    if (row > 1) {
 			round_ballots_add(mysvg,rks,newX,rkY,curX,rowH,mystr,colDict[SortedCandidates[row][0]]);
 		    } else {
@@ -403,7 +334,7 @@ function draw_bar_round_cand_only(mysvg,row,key,value,xFactor,curX,curY,filtered
 	    if ((k < tmprnk.length) && (tmprnk[k] == value[0].toString())) {
 		votes_tot = votes_tot + rvalue['Number'];
 	    };
-	    console.log("tot votes: ",votes_tot," in round ",k);
+	    // console.log("tot votes: ",votes_tot," in round ",k);
 	};
 
 	// now go back through and draw the appropriate rectangle with the appropriate aggregate vote count
@@ -438,7 +369,7 @@ function draw_bar_round_first(mysvg,row,key,value,xFactor,curX,curY,filteredSegm
 	    if (tmprnk[0] == SortedCandidates[k][0]) {
 		votes_tot = votes_tot + rvalue['Number'];
 	    };
-	    console.log("tot votes: ",votes_tot," to candidate ",SortedCandidates[k][0]);
+	    // console.log("tot votes: ",votes_tot," to candidate ",SortedCandidates[k][0]);
 	};
 
 	// now go back through and draw the appropriate rectangle with the appropriate aggregate vote count
@@ -578,6 +509,8 @@ function make_chart(mydata) {
 	curY = curY - yDiff; 
 	var curX = xOffset + parseInt(value[1])*xFactor; // how far bar extends to the right
 
+	var sep_arr = [xOffset]
+
 	// put candidate total at right side of bar
 	mysvg.append("text")
     	    .attr("x",curX + 20)
@@ -589,13 +522,14 @@ function make_chart(mydata) {
 
 	// Add tick mark at right side of bar
 	if (end_separators) {
-	    mysvg.append("line")
-		.attr("x1",curX)
-		.attr("x2",curX)
-		.attr("y1",curY+rowH)
-		.attr("y2",curY+rowH+7)
-		.attr("stroke","black")
-		.attr("width",2);
+	    sep_arr.push(curX)
+	    // mysvg.append("line")
+	    // 	.attr("x1",curX)
+	    // 	.attr("x2",curX)
+	    // 	.attr("y1",curY+rowH)
+	    // 	.attr("y2",curY+rowH+7)
+	    // 	.attr("stroke","black")
+	    // 	.attr("width",2);
 	}
 
 	// run through segments
@@ -615,13 +549,14 @@ function make_chart(mydata) {
 
 	    // Add in seperators between segments
 	    if (end_separators || row < numRows-1) {
-		mysvg.append("line")
-		    .attr("x1",curX)
-		    .attr("x2",curX)
-		    .attr("y1",curY+rowH)
-		    .attr("y2",curY+rowH+7)
-		    .attr("stroke","black")
-		    .attr("width",2);
+		sep_arr.push(curX)
+		// mysvg.append("line")
+		//     .attr("x1",curX)
+		//     .attr("x2",curX)
+		//     .attr("y1",curY-10)
+		//     .attr("y2",curY+rowH+10)
+		//     .attr("stroke","black")
+		//     .attr("width",0.5);
 	    }
 
 	};
@@ -665,6 +600,29 @@ function make_chart(mydata) {
 		    .text("Winner");
 	    }
 
+	sep_arr.push()
+	for (jj = 0; jj < sep_arr.length; jj++) {
+	    // console.log("wha",jj,curY,sep_arr)
+	    mysvg.append("line")
+		.attr("x1",sep_arr[jj])
+		.attr("x2",sep_arr[jj])
+		.attr("y1",curY-10)
+		.attr("y2",curY+rowH+10)
+		.attr("stroke","#555555")
+		.attr("width",0.25);
+	    // console.log("x",jj,sep_arr[jj+1],sep_arr[jj])
+	    if (jj < sep_arr.length-1 && sep_arr[jj]-sep_arr[jj+1] > 35) {
+		// console.log("here i am",jj)
+		mysvg.append("text")
+		    .attr("x",(sep_arr[jj+1]+sep_arr[jj])/2)
+		    .attr("y",curY + rowH + 12)
+		    .attr("text-anchor","middle")
+		    .attr("font-size",12)
+		    .attr("fill","#555555")
+		    .text("Rd " + (jj).toString());
+	    }
+		
+	}
     };
 }
 
