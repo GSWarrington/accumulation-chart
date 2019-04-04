@@ -17,9 +17,8 @@ var end_separators = true; // whether to place separators at end of the bar
 // for tooltips (which place a candidate was ranked)
 var nth_list = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th","11th","12","13th","14th","15th"];
 
-var colorm = document.getElementsByName("colorMode");
-var selectedOption = d3.select("#selectButton").property("value");
-var selectedColorMode = "crank"; // color_dict[d3.select("#colorMenu").property("value")];
+var selectedOption = d3.select("#selectButton").property("value"); // which election we're plotting
+var selectedColorMode = "crank"; // the default is to color by rank as described in the paper
 
 // https://stackoverflow.com/questions/4878756/how-to-capitalize-first-letter-of-each-word-like-a-2-word-city
 function myTitleCase(mystr) {
@@ -36,12 +35,7 @@ function myWrap(s, w) {
 	    new RegExp(`(?![^\\n]{1,${w}}$)([^\\n]{1,${w}})\\s`, 'g'), '$1\n');
 }
 
-function zoomed() {
-  gElem.attr("transform", d3.event.transform)
-}
-
-var zoom = d3.zoom().on("zoom", zoomed);
-
+// newcontainer is defined to hold the scrollbars
 var mysvg = d3.select('#newcontainer')
     .append("svg")
     .attr('id','mysvg')
@@ -50,15 +44,10 @@ var mysvg = d3.select('#newcontainer')
     }))
     .append("g");
 
-var gElem = mysvg.append("g").call(zoom);
-
 // Define the div for the tooltip
 var div = d3.select("body").append("div")	
     .attr("class", "tooltip")				
     .style("opacity", 0);
-
-// default to Maine data
-var data = me_data;
 
 ////////////////////////////////////////////////////////////////////////////////
 // dictionary of elections contained in elec-data.js
@@ -618,7 +607,7 @@ function make_chart(mydata) {
 		    .attr("y",curY + rowH + 12)
 		    .attr("text-anchor","middle")
 		    .attr("font-size",12)
-		    .attr("fill","#555555")
+		    .attr("fill","#bbbbbb")
 		    .text("Rd " + (jj).toString());
 	    }
 		
@@ -645,42 +634,15 @@ d3.select("#selectButton").on("change", function(d) {
     // run the updateChart function with this selected option
     // selectedColorMode = d3.select("#colorMode").property("value");
     update(selectedOption)
-//    if (selectedOption == '2013 Minneapolis, MN mayoral') {
-//	svgHeight = 1200
-	// svgWidth = 1300
-//    }
 })
 
 // When the button is changed, run the updateChart function
 d3.select("#colorMenu").on("change", function(d) {
-    // recover the option that has been chosen
-    // var selectedOption = d3.select(this).property("value")
-    // console.log("selected option: ",selectedOption);
     // run the updateChart function with this selected option
     selectedColorMode = color_dict[d3.select(this).property("value")];
     selectedOption = d3.select("#selectButton").property("value")
     update(selectedOption)
-//    if (selectedOption == '2013 Minneapolis, MN mayoral') {
-//	svgHeight = 1200
-	// svgWidth = 1300
-//    }
 })
 
-// When the button is changed, run the updateChart function
-// d3.select("#resetButton").on("click", function(d) {
-//     //svg.call(zoom.transform, d3.zoomIdentity.scale(1));
-//     console.log("resetting");
-//   gElem.transition()
-//     .duration(750)
-//     .call(zoom.transform, d3.zoomIdentity);
-// })
-
-// $("#resetButton").click(() => {
-//   gElem.transition()
-//     .duration(750)
-//     .call(zoom.transform, d3.zoomIdentity);
-// });
-
 // initialize the chart to the first selection
-
 update(elec_keys[0]);
