@@ -71,6 +71,9 @@ d3.select("#colorMenu")
     .attr("fontSize","xx-large");
 
 ///////////////////////////////////////////////////////////////////////////////
+// we want to display different tooltips according to what our color scheme is
+// our first group of functions just computes the string pertaining to the candidates
+// and the places they were ranked
 function default_tooltip_str(myrks) {
 
     var preflist = myrks;
@@ -88,218 +91,108 @@ function default_tooltip_str(myrks) {
     return formlist.join('');
 }
 
-function cand_tooltip_str(myrks) {
-    var preflist = myrks;
-    // console.log("myr: ",myrks);
+// all we need to know is the bottom candidate
+function cand_tooltip_str(preflist) {
     var formlist = [myTitleCase(preflist[preflist.length-1])];
     formlist.push(" " + nth_list[preflist.length-1]);
-    // //for (idx = 0; idx < preflist.length-1; idx++) {
-    // var idx = preflist.length-2;
-    // 	formlist.push(" " + nth_list[idx]);
-    // 	if (idx == preflist.length-2) {
-    // 	    formlist.push(",</br>");
-    // 	} else {
-    // 	    formlist.push(",</br>");
-    // 	}
-    // 	formlist.push(myTitleCase(preflist[idx+1]));
-    // //}
-    // formlist.push(" " + nth_list[idx]);
     return formlist.join('');
 }
 
-function first_tooltip_str(myrks) {
-    var preflist = myrks;
-    // console.log("myr: ",myrks);
+// all we need to know is the first candidate
+function first_tooltip_str(preflist) {
     var formlist = [myTitleCase(preflist[0])];
     formlist.push(" " + nth_list[0]);
-    // //for (idx = 0; idx < preflist.length-1; idx++) {
-    // var idx = preflist.length-2;
-    // 	formlist.push(" " + nth_list[idx]);
-    // 	if (idx == preflist.length-2) {
-    // 	    formlist.push(",</br>");
-    // 	} else {
-    // 	    formlist.push(",</br>");
-    // 	}
-    // 	formlist.push(myTitleCase(preflist[idx+1]));
-    // //}
-    // formlist.push(" " + nth_list[idx]);
     return formlist.join('');
 }
 
+// how we add tooltips to each rectangle we draw
+// all that changes is the text mystr
+function add_mouse(my_selection,mystr) {
+    my_selection
+	.on("mouseover", function(d) {		
+	    div.transition()		
+		.duration(200)		
+		.style("opacity", .9);		
+	    div.html(mystr) 
+		.style("left", (d3.event.pageX + 28) + "px")		
+		.style("top", (d3.event.pageY - 56) + "px");	
+	})					
+	.on("mouseout", function(d) {		
+	    div.transition()		
+		.duration(500)		
+		.style("opacity", 0);	
+	});
+}
+
+////////////////////////////////////////////////////////////////////
+// these functions draw the relevant rectangles
+
+// every collection of ballots gets its own rectangle
+// j runs from top to bottom
 function default_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr) {
     for (j = 0; j < rks.length; j++) {
-	mysvg.append("rect")
+	var myselec = mysvg.append("rect")
 	    .attr("x", newX)
 	    .attr("y", rkY)
 	    .attr("width",Math.max(0,curX-newX))
 	    .attr("height",rkH)
 	    .attr("fill",colDict[rks[j]])
-	    .on("mouseover", function(d) {		
-		div.transition()		
-		    .duration(200)		
-		    .style("opacity", .9);		
-		div.html(mystr) 
-		    .style("left", (d3.event.pageX + 28) + "px")		
-		    .style("top", (d3.event.pageY - 56) + "px");	
-	    })					
-	    .on("mouseout", function(d) {		
-		div.transition()		
-		    .duration(500)		
-		    .style("opacity", 0);	
-	    });
+	add_mouse(myselec,mystr);
 	rkY = rkY + rkH;
     };
 }
 
+// 
 function cand_only_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr) {
     rkY = rkY + (rks.length-1)*rkH
     j = rks.length - 1
     // console.log("adding: ",newX,rkY,Math.max(0,curX-newX));
-    mysvg.append("rect")
+    var myselec = mysvg.append("rect")
 	.attr("x", newX)
 	.attr("y", rkY)
 	.attr("width",Math.max(0,curX-newX))
 	.attr("height",rkH)
 	.attr("fill",colDict[rks[j]])
-	.on("mouseover", function(d) {		
-	    div.transition()		
-		.duration(200)		
-		.style("opacity", .9);		
-	    div.html(mystr) 
-		.style("left", (d3.event.pageX + 28) + "px")		
-		.style("top", (d3.event.pageY - 56) + "px");	
-	})					
-	.on("mouseout", function(d) {		
-	    div.transition()		
-		.duration(500)		
-		.style("opacity", 0);	
-	});
+
+    add_mouse(myselec,mystr);
     return newX;
 }
 
+// here we are coloring by the first-ranked candidate, so only need one rectangle
 function first_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr) {
     rkY = rkY;
     j = 0;
     // console.log("adding: ",newX,rkY,Math.max(0,curX-newX));
-    mysvg.append("rect")
+    var myselec = mysvg.append("rect")
 	.attr("x", newX)
 	.attr("y", rkY)
 	.attr("width",Math.max(0,curX-newX))
 	.attr("height",rkH)
 	.attr("fill",colDict[rks[j]])
-	.on("mouseover", function(d) {		
-	    div.transition()		
-		.duration(200)		
-		.style("opacity", .9);		
-	    div.html(mystr) 
-		.style("left", (d3.event.pageX + 28) + "px")		
-		.style("top", (d3.event.pageY - 56) + "px");	
-	})					
-	.on("mouseout", function(d) {		
-	    div.transition()		
-		.duration(500)		
-		.style("opacity", 0);	
-	});
+    add_mouse(myselec,mystr);
     return newX;
-}
-
-function roundacc_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr,row,SortedCandidates) {
-    rkY = rkY;
-    j = 0;
-    // console.log("adding: ",row,SortedCandidates[row-1][0],newX,rkY,Math.max(0,curX-newX));
-    mysvg.append("rect")
-	.attr("x", newX)
-	.attr("y", rkY)
-	.attr("width",Math.max(0,curX-newX))
-	.attr("height",rkH)
-	.attr("fill",colDict[SortedCandidates[row-1][0]])
-	.on("mouseover", function(d) {		
-	    div.transition()		
-		.duration(200)		
-		.style("opacity", .9);		
-	    div.html(mystr) 
-		.style("left", (d3.event.pageX + 28) + "px")		
-		.style("top", (d3.event.pageY - 56) + "px");	
-	})					
-	.on("mouseout", function(d) {		
-	    div.transition()		
-		.duration(500)		
-		.style("opacity", 0);	
-	});
-    return newX;
-}
-
-function round_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr,curColor) {
-    // console.log("here i am: ",row,colDict[row-1],colDict);
-    // j = rks.length-1;
-    mysvg.append("rect")
-	.attr("x", newX)
-	.attr("y", rkY)
-	.attr("width",Math.max(0,curX-newX))
-	.attr("height",rkH)
-	.attr("fill",curColor)
-	.on("mouseover", function(d) {		
-	    div.transition()		
-		.duration(200)		
-		.style("opacity", .9);		
-	    div.html(mystr) 
-		.style("left", (d3.event.pageX + 28) + "px")		
-		.style("top", (d3.event.pageY - 56) + "px");	
-	})					
-	.on("mouseout", function(d) {		
-	    div.transition()		
-		.duration(500)		
-		.style("opacity", 0);	
-	});
 }
 
 function draw_bar_round(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,SortedCandidates) {
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    // default coloring scheme
     // now we want to fill in the votes that were accumulated during a given round.
-    // if we're using the default coloring scheme, we keep everything as fine as possible.
+    // "crank": Default mode of coloring by total ranking
     for (k = 0; k < SortedCandidates.length; k++) {
 	for (const [rkey, rvalue] of Object.entries(filteredSegment)) {
 	    // this isn't pretty, but let's sort according to how low-ranked the candidate is
 	    var tmprnk = rvalue.Ranks.split(",");
 	    if ((k < tmprnk.length) && (tmprnk[k] == value[0].toString())) {
-		var newX = curX - parseInt(rvalue.Number)*xFactor;
-		// console.log("Round,row: ",value[0],row,newX,curX);
-
-		// this is for default accumulation chart
 		// run through the pedigree
+		var newX = curX - parseInt(rvalue.Number)*xFactor;
 		var rks = rvalue.Ranks.split(",");
 		var rkY = curY;
 		var rkH = rowH/rks.length;
 		
-		// console.log("select color mode: ",selectedColorMode);
-		if (selectedColorMode == "crank") {
-		    rvalue.FormattedRanks = default_tooltip_str(rks);
-		    var mystr = myTitleCase(value[0]) + " accumulated " + rvalue.Number.toLocaleString('en-US') + " votes in Round " + rvalue.Segment.toString() + " that ranked<br/>" + rvalue.FormattedRanks
-		    default_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr);
-		} else if (selectedColorMode == "cround") {
-		    rvalue.FormattedRanks = default_tooltip_str(rks);
-		    var mystr = myTitleCase(value[0]) + " accumulated " + rvalue.Number.toLocaleString('en-US') + " votes in Round " + rvalue.Segment.toString() + " that ranked<br/>" + rvalue.FormattedRanks
-		    // console.log("round: ",row,SortedCandidates[row],SortedCandidates[row]['key']);
-		    if (row > 1) {
-			round_ballots_add(mysvg,rks,newX,rkY,curX,rowH,mystr,colDict[SortedCandidates[row][0]]);
-		    } else {
-			round_ballots_add(mysvg,rks,newX,rkY,curX,rowH,mystr,colDict[SortedCandidates[row][0]]);
-		    }
-		} else if (selectedColorMode == "cfirst") {
-		    rvalue.FormattedRanks = first_tooltip_str(rks);
-		    var mystr = myTitleCase(value[0]) + " accumulated " + rvalue.Number.toLocaleString('en-US') + " votes in Round " + rvalue.Segment.toString() + " that ranked<br/>" + rvalue.FormattedRanks
-		    // console.log("round: ",row,SortedCandidates[row],SortedCandidates[row]['key']);
-		    if (row > 1) {
-			round_ballots_add(mysvg,rks,newX,rkY,curX,rowH,mystr,colDict[SortedCandidates[row][0]]);
-		    } else {
-			round_ballots_add(mysvg,rks,newX,rkY,curX,rowH,mystr,colDict[SortedCandidates[row][0]]);
-		    }
-		} else {
-		    rvalue.FormattedRanks = cand_tooltip_str(rks);
-		    var mystr = myTitleCase(value[0]) + " accumulated " + rvalue.Number.toLocaleString('en-US') + " votes in Round " + rvalue.Segment.toString() + " that ranked<br/>" + rvalue.FormattedRanks
-		    cand_only_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr);
-		}
+		// "cfirst": color by the first candidate on the ballot
+		rvalue.FormattedRanks = default_tooltip_str(rks);
+		var mystr = myTitleCase(value[0]) + " accumulated " + rvalue.Number.toLocaleString('en-US') +
+		    " votes in Round " + rvalue.Segment.toString() + " that ranked<br/>" + rvalue.FormattedRanks
+		default_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr);
 		curX = newX;
 	    };
 	};
@@ -309,7 +202,7 @@ function draw_bar_round(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,So
 
 function draw_bar_round_cand_only(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,SortedCandidates) {
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    // default coloring scheme
+    // "ccand": color only the candidate to whom the ballot is contributing
     // now we want to fill in the votes that were accumulated during a given round.
     // we need to select ballots according to what place the given candidate is in
     for (k = 0; k < SortedCandidates.length; k++) {
@@ -323,18 +216,22 @@ function draw_bar_round_cand_only(mysvg,row,key,value,xFactor,curX,curY,filtered
 	    if ((k < tmprnk.length) && (tmprnk[k] == value[0].toString())) {
 		votes_tot = votes_tot + rvalue['Number'];
 	    };
-	    // console.log("tot votes: ",votes_tot," in round ",k);
 	};
 
-	// now go back through and draw the appropriate rectangle with the appropriate aggregate vote count
+	// this could be cleaned up, but I think the string needs to be stored in filteredSegment....?
+	var first_rect = true;
 	for (const [rkey, rvalue] of Object.entries(filteredSegment)) {
 	    // this isn't pretty, but let's sort according to how low-ranked the candidate is
 	    var tmprnk = rvalue.Ranks.split(",");
 	    if ((k < tmprnk.length) && (tmprnk[k] == value[0].toString())) {
 		rvalue.FormattedRanks = cand_tooltip_str(tmprnk);
-		newX = curX - parseInt(rvalue.Number)*xFactor;
-		var mystr = myTitleCase(value[0]) + " accumulated " + votes_tot.toLocaleString('en-US') + " votes in Round " + rvalue.Segment.toString() + " that ranked<br/>" + rvalue.FormattedRanks;
-		curX = cand_only_ballots_add(mysvg,tmprnk,newX,rkY,curX,rkH,mystr);
+		var mystr = myTitleCase(value[0]) + " accumulated " + votes_tot.toLocaleString('en-US') +
+		    " votes in Round " + rvalue.Segment.toString() + " that ranked<br/>" + rvalue.FormattedRanks;
+		if (first_rect == true) {
+		    newX = curX - votes_tot*xFactor;
+		    curX = cand_only_ballots_add(mysvg,tmprnk,newX,rkY,curX,rkH,mystr);
+		    first_rect = false;
+		}
 	    };
 	};
     };
@@ -358,7 +255,6 @@ function draw_bar_round_first(mysvg,row,key,value,xFactor,curX,curY,filteredSegm
 	    if (tmprnk[0] == SortedCandidates[k][0]) {
 		votes_tot = votes_tot + rvalue['Number'];
 	    };
-	    // console.log("tot votes: ",votes_tot," to candidate ",SortedCandidates[k][0]);
 	};
 
 	// now go back through and draw the appropriate rectangle with the appropriate aggregate vote count
@@ -368,7 +264,8 @@ function draw_bar_round_first(mysvg,row,key,value,xFactor,curX,curY,filteredSegm
 	    if (tmprnk[0] == SortedCandidates[k][0]) {
 		rvalue.FormattedRanks = first_tooltip_str(tmprnk);
 		newX = curX - parseInt(rvalue.Number)*xFactor;
-		var mystr = myTitleCase(value[0]) + " accumulated " + votes_tot.toLocaleString('en-US') + " votes in Round " + rvalue.Segment.toString() + " that ranked<br/>" + rvalue.FormattedRanks;
+		var mystr = myTitleCase(value[0]) + " accumulated " + votes_tot.toLocaleString('en-US') +
+		    " votes in Round " + rvalue.Segment.toString() + " that ranked<br/>" + rvalue.FormattedRanks;
 		curX = first_ballots_add(mysvg,tmprnk,newX,rkY,curX,rkH,mystr);
 	    };
 	};
@@ -376,59 +273,14 @@ function draw_bar_round_first(mysvg,row,key,value,xFactor,curX,curY,filteredSegm
     return curX;
 }
 
-// color according to round accumulated
-function draw_bar_round_roundacc(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,SortedCandidates) {
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    // default coloring scheme
-    // now we want to fill in the votes that were accumulated during a given round.
-    // we need to select ballots according to what place the given candidate is in
-    var votes_tot = 0;
-    var rkY = curY;
-    var rkH = rowH;
-
-    // first figure out the total number of votes here	
-    for (const [rkey, rvalue] of Object.entries(filteredSegment)) {
-	var tmprnk = rvalue.Ranks.split(",");
-	votes_tot = votes_tot + rvalue['Number'];
-	// console.log("tot votes: ",votes_tot," in round ",SortedCandidates[k][0]);
-    };
-
-    // now go back through and draw the appropriate rectangle with the appropriate aggregate vote count
-    for (const [rkey, rvalue] of Object.entries(filteredSegment)) {
-	// this isn't pretty, but let's sort according to how low-ranked the candidate is
-	var tmprnk = rvalue.Ranks.split(",");
-	rvalue.FormattedRanks = first_tooltip_str(tmprnk);
-	newX = curX - parseInt(rvalue.Number)*xFactor;
-	var mystr = myTitleCase(value[0]) + " accumulated " + votes_tot.toLocaleString('en-US') + " votes in Round " + rvalue.Segment.toString();
-	curX = roundacc_ballots_add(mysvg,tmprnk,newX,rkY,curX,rkH,mystr,row,SortedCandidates);
-    };
-
-    return curX;
-}
-
 ///////////////////////////////////////////////////////////////////////////////
-function make_chart(mydata) {
+// mydata is the list of dictionaries holding the ballot info
+// mymeta is a dictionary holding info like "number of winners"
+function make_chart(mydata, mymeta) {
 
-    // var colorm = document.getElementById("colorscheme"); //.getElementsByName("colorMode");
-    // var selectedColorMode = "crank";
-    // var elem = document.getElementById("colorscheme");
-    // console.log(elem);
-
-    // var myNodelist = document.querySelectorAll("colorMode");
-    // console.log("arg: ",myNodelist,colorm);
-    // console.log("asfdasdfasdfasdfasdf: ",myNodelist.length);
-
-    // console.log("mylen: ",colorm.length);
-    // for(var i = 0; i < colorm.length; i++) {
-    // 	if(colorm[i].checked)
-    // 	    selectedColorMode = colorm[i].value;
-    // }
-
-    // d3.selectAll("svg > *").remove();
-
+    // reset everything before redrawing with new election and/or color scheme
     d3.selectAll("svg").remove();
 
-    // svgHeight = 1500
     var mysvg = d3.select('#newcontainer')
 	.append("svg")
 	.attr('id','mysvg')
@@ -466,10 +318,6 @@ function make_chart(mydata) {
 	"#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486",
 	"#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486"];
 
-	// "#8dd3c7","#ffffb3","#bebada","#fb8072","#80b1d3","#fdb462","#b3de69","#fccde5",
-	// "#8dd3c7","#ffffb3","#bebada","#fb8072","#80b1d3","#fdb462","#b3de69","#fccde5",
-	// "#8dd3c7","#ffffb3","#bebada","#fb8072","#80b1d3","#fdb462","#b3de69","#fccde5"];
-
     // get maximum vote total - clunky!
     var maxVotes = 0;
     for (i = 0; i < SortedCandidates.length; i++) {
@@ -506,19 +354,11 @@ function make_chart(mydata) {
     	    .attr("y",curY + rowH/2 + 10)
     	    .attr("font-size",24)
 	    .attr("text-anchor","start")
-    	    .text(value[1].toLocaleString('en-US')); // CandidateTotals[value[0]]['value']);
-	// console.log("rows in this order: ",value[1])
+    	    .text(value[1].toLocaleString('en-US')); 
 
 	// Add tick mark at right side of bar
 	if (end_separators) {
 	    sep_arr.push(curX)
-	    // mysvg.append("line")
-	    // 	.attr("x1",curX)
-	    // 	.attr("x2",curX)
-	    // 	.attr("y1",curY+rowH)
-	    // 	.attr("y2",curY+rowH+7)
-	    // 	.attr("stroke","black")
-	    // 	.attr("width",2);
 	}
 
 	// run through segments
@@ -528,28 +368,19 @@ function make_chart(mydata) {
 
 	    if (selectedColorMode == "crank") {
 		curX = draw_bar_round(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,SortedCandidates);
-	    } else if (selectedColorMode == "ccand") {
-		curX = draw_bar_round_cand_only(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,SortedCandidates);
 	    } else if (selectedColorMode == "cfirst") {
 		curX = draw_bar_round_first(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,SortedCandidates);
-	    } else {
-		curX = draw_bar_round_roundacc(mysvg,numRows-row,key,value,xFactor,curX,curY,filteredSegment,SortedCandidates);
+	    } else if (selectedColorMode == "ccand") {
+		curX = draw_bar_round_cand_only(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,SortedCandidates);
 	    }
 
 	    // Add in seperators between segments
 	    if (end_separators || row < numRows-1) {
 		sep_arr.push(curX)
-		// mysvg.append("line")
-		//     .attr("x1",curX)
-		//     .attr("x2",curX)
-		//     .attr("y1",curY-10)
-		//     .attr("y2",curY+rowH+10)
-		//     .attr("stroke","black")
-		//     .attr("width",0.5);
 	    }
 
 	};
-	    // Add in label for candidate
+	// Add in label for candidate
 	var candlabel = myWrap(myTitleCase(value[0]),8);
 	var candlist = myTitleCase(value[0]).split(" ")
 	candlabel1 = candlist[0]
@@ -617,22 +448,13 @@ function make_chart(mydata) {
 
 // A function that update the chart
 function update(selectedOption) {
-    make_chart(elec_dict[selectedOption]);
+    make_chart(elec_values(selectedOption), elec_meta(selectedOption));
 }
-
-// d3.select("#colorMode").on("change", function(d) {
-//     selectedOption = d3.select("selectButton").property("value");
-//     selectedColorMode = d3.select(this).property("value");
-//     update(selectedOption);
-// });
 
 // When the button is changed, run the updateChart function
 d3.select("#selectButton").on("change", function(d) {
     // recover the option that has been chosen
     selectedOption = d3.select(this).property("value")
-    // console.log("selected option: ",selectedOption);
-    // run the updateChart function with this selected option
-    // selectedColorMode = d3.select("#colorMode").property("value");
     update(selectedOption)
 })
 
