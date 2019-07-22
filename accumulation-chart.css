@@ -116,6 +116,12 @@ input[type='checkbox'] {
   transform: rotate(90deg) translateX(-3px);
 }
 
+.warning-content {
+  overflow: hidden;
+  max-width: 1024px;
+  font-size: 18px;
+}
+
 .collapsible-content {
   max-height: 0px;
   overflow: hidden;

@@ -25,6 +25,7 @@
       <script src="elec-meprim.js"></script>
       <script src="poll-pres-I.js"></script>
       <script src="elec-data.js"></script>
+      <script src="elec-structs.js"></script>
 
       <!-- Code for collapsible adapted from https://alligator.io/css/collapsible/ -->
       <div class="wrap-collabsible">
@@ -447,6 +448,12 @@
 	<p>Interactive accumulation charts for historical elections: 
 	<!-- Initialize a select button -->
 	<select id="selectButton" class="myButton"></select></p>
+
+	<div class = "warning-content">
+	<p id="data-note" class = "warning-content">
+	</p>
+	</div>
+
 	<p>Color ballots by: <select id="colorMenu" class="myMenu"></select> (descriptions below chart)</p>
 
 	<!-- <i>Options for how the data are displayed are located below the chart</i> -->
@@ -509,7 +516,7 @@
 	  With this color scheme, each ballot is permanently
 	  colored according to the first-choice preference that
 	  appears on it.
-	    <li><b>Color ballots only by candidate:</b> This color
+	    <li><b>Color ballots only by candidate:</b> With this color
 	      scheme, the height of the bar for any given ballot
 	      indicates how low of a preference that candidate
 	      was. This is similar to the default color scheme, except

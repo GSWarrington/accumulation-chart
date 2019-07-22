@@ -281,6 +281,9 @@ function make_chart(mydata, mymeta) {
     // reset everything before redrawing with new election and/or color scheme
     d3.selectAll("svg").remove();
 
+    console.log(mymeta);
+    document.getElementById("data-note").innerHTML = elec_text(mymeta);
+
     var mysvg = d3.select('#newcontainer')
 	.append("svg")
 	.attr('id','mysvg')
@@ -312,11 +315,18 @@ function make_chart(mydata, mymeta) {
 
     var col_arr;
     col_arr = [
-	"#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00",
-	"#cab2d6","#6a3d9a","#ffff99","#b15928","#76cee3","#1f58b4","#92df8a","#33702c",
-	"#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486",
-	"#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486",
-	"#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486"];
+	"#1f78b4","#a6cee3","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00",
+	"#cab2d6","#6a3d9a","#b15928","#76cee3","#1f58b4","#92df8a","#33702c",
+	"#9e9ac8","#807dba","#6a51a3","#4a1486","#9e9ac8","#807dba","#6a51a3","#4a1486",
+	"#9e9ac8","#807dba","#6a51a3","#4a1486","#9e9ac8","#807dba","#6a51a3","#4a1486",
+	"#9e9ac8","#807dba","#6a51a3","#4a1486","#9e9ac8","#807dba","#6a51a3","#4a1486"];
+
+    // col_arr = [
+    // 	"#1f78b4","#a6cee3","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00",
+    // 	"#cab2d6","#6a3d9a","#ffff99","#b15928","#76cee3","#1f58b4","#92df8a","#33702c",
+    // 	"#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486",
+    // 	"#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486",
+    // 	"#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486"];
 
     // get maximum vote total - clunky!
     var maxVotes = 0;
@@ -385,23 +395,31 @@ function make_chart(mydata, mymeta) {
 	var candlist = myTitleCase(value[0]).split(" ")
 	candlabel1 = candlist[0]
 
+	// console.log(colDict)
+	console.log(value[0])
 	if (candlist.length > 1) {
 	    mysvg.append("text")
 		.attr("x",5)
 		.attr("y",curY + rowH/4)
 		.attr("font-size",24)
+		.style('fill',colDict[value[0]])
+		.style('font-weight','bold')
 		.text(candlabel1);
 	    candlabel2 = candlist[candlist.length-1]
 	    mysvg.append("text")
 		.attr("x",5)
 		.attr("y",curY + 2*rowH/3)
 		.attr("font-size",24)
+		.style('fill',colDict[value[0]])
+		.style('font-weight','bold')
 		.text(candlabel2);
 	} else {
 	    mysvg.append("text")
 		.attr("x",5)
 		.attr("y",curY + rowH/2)
 		.attr("font-size",24)
+		.style('fill',colDict[value[0]])
+		.style('font-weight','bold')
 		.text(candlabel1);
 	}
 
@@ -448,6 +466,7 @@ function make_chart(mydata, mymeta) {
 
 // A function that update the chart
 function update(selectedOption) {
+    // console.log(elec_values);
     make_chart(elec_values(selectedOption), elec_meta(selectedOption));
 }
 
@@ -466,5 +485,6 @@ d3.select("#colorMenu").on("change", function(d) {
     update(selectedOption)
 })
 
+console.log("aaa",elec_keys[0])
 // initialize the chart to the first selection
 update(elec_keys[0]);
