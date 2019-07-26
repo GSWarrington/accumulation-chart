@@ -19,6 +19,7 @@ var nth_list = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "
 
 var selectedOption = d3.select("#selectButton").property("value"); // which election we're plotting
 var selectedColorMode = "crank"; // the default is to color by rank as described in the paper
+var selectedMaxCands = 100; // the default number of candidates to be willing to show
 
 // https://stackoverflow.com/questions/4878756/how-to-capitalize-first-letter-of-each-word-like-a-2-word-city
 function myTitleCase(mystr) {
@@ -69,6 +70,21 @@ d3.select("#colorMenu")
     .text(function (d) { return d; }) // text showed in the menu
     .attr("value", function (d) { return d; }) // corresponding value returned by the button
     .attr("fontSize","xx-large");
+
+d3.select("#maxCandsMenu")
+    .selectAll('myMaxOptions')
+    .data(maxCands_keys)
+    .enter()
+    .append('option')
+    .text(function (d) { return d; }) // text showed in the menu
+    .attr("value", function (d) { return d; }) // corresponding value returned by the button
+    .property("selected", function(d){ return d === "100"; })
+    .attr("fontSize","xx-large");
+
+// console.log(selectedMaxCands);
+// d3.select("maxCandsMenu").value="1000";
+// d3.select("#selectButton").property("value")
+//    selectedMaxCands = d3.select("maxCandsMenu").property("value");
 
 ///////////////////////////////////////////////////////////////////////////////
 // we want to display different tooltips according to what our color scheme is
@@ -177,6 +193,9 @@ function draw_bar_round(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,So
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // now we want to fill in the votes that were accumulated during a given round.
     // "crank": Default mode of coloring by total ranking
+    // console.log("In DBR: ",SortedCandidates);
+    // console.log("In DBR filtered: ",filteredSegment);
+    // console.log("In DBR other: ",row,key,value,xFactor,curX,curY);
     for (k = 0; k < SortedCandidates.length; k++) {
 	for (const [rkey, rvalue] of Object.entries(filteredSegment)) {
 	    // this isn't pretty, but let's sort according to how low-ranked the candidate is
@@ -274,14 +293,127 @@ function draw_bar_round_first(mysvg,row,key,value,xFactor,curX,curY,filteredSegm
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// code for limiting number of candidates to show
+///////////////////////////////////////////////////////////////////////////////
+function find_top_candidates(mydata) {
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// code for limiting number of candidates to show
+///////////////////////////////////////////////////////////////////////////////
+function keep_first_k(KeepCands,SortedCands,mydata) {
+    var new_data = [];
+    var new_dict = {};
+
+    for (i = 0; i < mydata.length; i++) {
+	// ignore if not part of round that we're keeping
+	if (KeepCands.indexOf(mydata[i]['Round']) == -1) {
+	    continue;
+	};
+	var curCand = mydata[i]['Round']; // The candidate whose round we're in
+	var has_seen_cur = false;         // Only decrease segment count for ones in current pedigree
+
+	var rks = mydata[i]['Ranks'].split(',');
+	var new_rks = []
+	// var seenOther = False; // have we seen any deleted candidates yet?
+	var segDec = 0;
+// 	if (mydata['Segment'] == 1) {
+// 	    segDec = 0;
+// KeepCands.length == SortedCands.length
+// 	} else {
+// 	    segDec = 0;
+// 	};
+
+	for (j = 0; j < rks.length; j++) {
+	    if (KeepCands.indexOf(rks[j]) > -1) {
+		new_rks.push(rks[j]);
+		// segDec += 1;
+		// console.log("cC: ",typeof(curCand),curCand);
+		if (curCand == rks[j]) {
+		    has_seen_cur = true;
+		};
+	    // } else {
+	    // 	if (has_seen_cur == false) {
+	    // 	    segDec = segDec + 1;
+	    // 	};
+	    };
+	};
+
+	// console.log("really: ",KeepCands);
+	// console.log("New KC: ",new_rks,new_rks[new_rks.length-1],new_rks[new_rks.length-2]);
+	if (new_rks.length == 1) {
+	    segDec = 1;
+	} else {
+	    // console.log("adding rks: ",new_rks);
+	    segDec = KeepCands.indexOf(new_rks[new_rks.length-2])+2;
+	};
+
+	// make a dictionary to aggregate numbers
+	var keystr = mydata[i]['Round'] + "-" + (segDec).toString() + "-" + new_rks.join(",");
+	if (keystr in new_dict) {
+	    new_dict[keystr] += mydata[i]["Number"];
+	} else {
+	    new_dict[keystr] = mydata[i]["Number"];
+	};
+
+    };
+    
+    // form back into an array
+    var jj = 0;
+    Object.keys(new_dict).forEach(function(key) {
+	pieces = key.split("-");
+	new_data.push({"Ballot": jj, "Round": pieces[0], "Segment": Number(pieces[1]), "Number": new_dict[key], "Ranks": pieces[2]});
+	jj += 1;
+    });
+
+    // new_data.push({"Ballot": i, "Round": mydata[i]['Round'], "Segment": mydata[i]["Segment"]-segDec, \
+    // "Number": mydata[i]["Number"], "Ranks": new_rks.join(",")});
+    return new_data;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// code for limiting number of candidates to show
+///////////////////////////////////////////////////////////////////////////////
+function replace_with_other(KeepCands,SortedCands,mydata) {
+    var newdata = [];
+    for (i = 0; i < mydata.length; i++) {
+	// ignore if not part of round that we're keeping
+	if (KeepCands.indexOf(mydata[i]['Round']) == -1) {
+	    continue;
+	};
+	var rks = mydata[i]['Ranks'].split(',');
+	var new_rks = []
+	var seenOther = false; // have we seen any deleted candidates yet?
+	var segDec = 0;
+	for (j = 0; j < rks.length; j++) {
+	    if (KeepCands.indexOf(rks[j]) > -1) {
+		new_rks.push(rks[j]);
+	    } else {
+		if (seenOther == false) {
+		    new_rks.push("Other");
+		    seenOther = true;
+		} else {
+		    segDec = segdec - 1;
+		};
+	    };
+	};
+	
+	// newdata.push({"Ballot": i, "Round": mydata[i]['Round']-segDec, 
+    };
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // mydata is the list of dictionaries holding the ballot info
 // mymeta is a dictionary holding info like "number of winners"
-function make_chart(mydata, mymeta) {
+function make_chart(orig_data, mymeta) {
+
+    // console.log("mc: ",selectedMaxCands);
 
     // reset everything before redrawing with new election and/or color scheme
     d3.selectAll("svg").remove();
 
-    console.log(mymeta);
+    // console.log(mymeta);
     document.getElementById("data-note").innerHTML = elec_text(mymeta);
 
     var mysvg = d3.select('#newcontainer')
@@ -296,7 +428,7 @@ function make_chart(mydata, mymeta) {
     var CandidateTotals = d3.nest()
 	.key(function(d) { return d.Round; })
 	.rollup(function(v) { return d3.sum(v, function(d) { return d.Number; }) })
-	.entries(mydata);
+	.entries(orig_data);
     // console.log("New CandidateTotals",typeof(mydata),JSON.stringify(CandidateTotals));
 
     // Create items array
@@ -312,6 +444,51 @@ function make_chart(mydata, mymeta) {
 	    return first[1] - second[1];
 	}
     });
+
+    // console.log("blah: ",SortedCandidates,typeof(SortedCandidates));
+    // the Candidates who are going to get their own line
+    // var KeepCandidates = [];
+    // for (jj = 0; jj < selectedMaxCands; jj++) {
+    // 	console.log("cha: ",SortedCandidates[jj],typeof(SortedCandidates[jj]));
+    // 	// KeepCandidates.push(SortedCandidates[jj][0]);
+    // };
+    var KeepCandidates = SortedCandidates.slice(SortedCandidates.length-selectedMaxCands).map(function(mykey) {
+	return mykey[0];
+    });
+
+    // console.log("OC: ",SortedCandidates);
+    // console.log("KC: ",KeepCandidates);
+    // console.log(orig_data);
+    var mydata;
+    if (SortedCandidates.length > selectedMaxCands) {
+	// run through mydata, replacing Candidates too low in the order with "Other"
+	mydata = keep_first_k(KeepCandidates,SortedCandidates,orig_data);
+	// console.log("orig: ", orig_data);
+	// console.log("new: ", mydata);
+	// Get total votes for each candidate
+	CandidateTotals = d3.nest()
+	    .key(function(d) { return d.Round; })
+	    .rollup(function(v) { return d3.sum(v, function(d) { return d.Number; }) })
+	    .entries(mydata);
+
+	// Create items array
+	SortedCandidates = Object.keys(CandidateTotals).map(function(mykey) {
+	    return [CandidateTotals[mykey]['key'],CandidateTotals[mykey]['value']];
+	});
+
+	// Sort the array based on the second element
+	SortedCandidates.sort(function(first, second) {
+	    if (first[0] == 'WriteIn') {
+		return -1;
+	    } else {
+		return first[1] - second[1];
+	    }
+	});
+	// console.log("SC: ",SortedCandidates);
+    } else {
+	mydata = orig_data;
+    }
+    // console.log(mydata);
 
     var col_arr;
     col_arr = [
@@ -376,6 +553,7 @@ function make_chart(mydata, mymeta) {
 	for (row = 1; row < numRows; row++) {
 	    var filteredSegment = filteredRound.filter(function (a) { return parseInt(a.Segment) == row });
 
+	    // console.log("loop: ",row,filteredSegment,selectedColorMode);
 	    if (selectedColorMode == "crank") {
 		curX = draw_bar_round(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,SortedCandidates);
 	    } else if (selectedColorMode == "cfirst") {
@@ -396,7 +574,7 @@ function make_chart(mydata, mymeta) {
 	candlabel1 = candlist[0]
 
 	// console.log(colDict)
-	console.log(value[0])
+	// console.log(value[0])
 	if (candlist.length > 1) {
 	    mysvg.append("text")
 		.attr("x",5)
@@ -481,10 +659,20 @@ d3.select("#selectButton").on("change", function(d) {
 d3.select("#colorMenu").on("change", function(d) {
     // run the updateChart function with this selected option
     selectedColorMode = color_dict[d3.select(this).property("value")];
-    selectedOption = d3.select("#selectButton").property("value")
-    update(selectedOption)
+    selectedOption = d3.select("#selectButton").property("value");
+    selectedMaxCands = d3.select("maxCandsMenu").property("value");
+    update(selectedOption);
 })
 
-console.log("aaa",elec_keys[0])
+// When the button is changed, run the updateChart function
+d3.select("#maxCandsMenu").on("change", function(d) {
+    // run the updateChart function with this selected option
+    // selectedColorMode = color_dict[d3.select(this).property("value")];
+    selectedOption = d3.select("#selectButton").property("value");
+    selectedMaxCands = d3.select(this).property("value");
+    update(selectedOption);
+})
+
+// console.log("aaa",elec_keys[0])
 // initialize the chart to the first selection
 update(elec_keys[0]);
