@@ -20,6 +20,7 @@ var nth_list = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "
 var selectedOption = d3.select("#selectButton").property("value"); // which election we're plotting
 var selectedColorMode = "crank"; // the default is to color by rank as described in the paper
 var selectedMaxCands = 100; // the default number of candidates to be willing to show
+var rightToLeft = false;
 
 // https://stackoverflow.com/questions/4878756/how-to-capitalize-first-letter-of-each-word-like-a-2-word-city
 function myTitleCase(mystr) {
@@ -146,11 +147,18 @@ function add_mouse(my_selection,mystr) {
 // every collection of ballots gets its own rectangle
 // j runs from top to bottom
 function default_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr) {
+    if (rightToLeft) {
+	leftX = newX;
+	widthX = curX - newX;
+    } else {
+	leftX = curX;
+	widthX = newX - curX;
+    }
     for (j = 0; j < rks.length; j++) {
 	var myselec = mysvg.append("rect")
-	    .attr("x", newX)
+	    .attr("x", leftX)
 	    .attr("y", rkY)
-	    .attr("width",Math.max(0,curX-newX))
+	    .attr("width",Math.max(0,widthX))
 	    .attr("height",rkH)
 	    .attr("fill",colDict[rks[j]])
 	add_mouse(myselec,mystr);
@@ -162,11 +170,18 @@ function default_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr) {
 function cand_only_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr) {
     rkY = rkY + (rks.length-1)*rkH
     j = rks.length - 1
+    if (rightToLeft) {
+	leftX = newX;
+	widthX = curX - newX;
+    } else {
+	leftX = curX;
+	widthX = newX - curX;
+    }
     // console.log("adding: ",newX,rkY,Math.max(0,curX-newX));
     var myselec = mysvg.append("rect")
-	.attr("x", newX)
+	.attr("x", leftX)
 	.attr("y", rkY)
-	.attr("width",Math.max(0,curX-newX))
+	.attr("width",Math.max(0,widthX))
 	.attr("height",rkH)
 	.attr("fill",colDict[rks[j]])
 
@@ -178,11 +193,18 @@ function cand_only_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr) {
 function first_ballots_add(mysvg,rks,newX,rkY,curX,rkH,mystr) {
     rkY = rkY;
     j = 0;
+    if (rightToLeft) {
+	leftX = newX;
+	widthX = curX - newX;
+    } else {
+	leftX = curX;
+	widthX = newX - curX;
+    }
     // console.log("adding: ",newX,rkY,Math.max(0,curX-newX));
     var myselec = mysvg.append("rect")
-	.attr("x", newX)
+	.attr("x", leftX)
 	.attr("y", rkY)
-	.attr("width",Math.max(0,curX-newX))
+	.attr("width",Math.max(0,widthX))
 	.attr("height",rkH)
 	.attr("fill",colDict[rks[j]])
     add_mouse(myselec,mystr);
@@ -202,11 +224,17 @@ function draw_bar_round(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,So
 	    var tmprnk = rvalue.Ranks.split(",");
 	    if ((k < tmprnk.length) && (tmprnk[k] == value[0].toString())) {
 		// run through the pedigree
-		var newX = curX - parseInt(rvalue.Number)*xFactor;
+		var newX;
+		if (rightToLeft) {
+		    newX = curX - parseInt(rvalue.Number)*xFactor;
+		} else {
+		    newX = curX + parseInt(rvalue.Number)*xFactor;
+		}
 		var rks = rvalue.Ranks.split(",");
 		var rkY = curY;
 		var rkH = rowH/rks.length;
 		
+		console.log("newX: ",newX);
 		// "cfirst": color by the first candidate on the ballot
 		rvalue.FormattedRanks = default_tooltip_str(rks);
 		var mystr = myTitleCase(value[0]) + " accumulated " + rvalue.Number.toLocaleString('en-US') +
@@ -247,7 +275,12 @@ function draw_bar_round_cand_only(mysvg,row,key,value,xFactor,curX,curY,filtered
 		var mystr = myTitleCase(value[0]) + " accumulated " + votes_tot.toLocaleString('en-US') +
 		    " votes in Round " + rvalue.Segment.toString() + " that ranked<br/>" + rvalue.FormattedRanks;
 		if (first_rect == true) {
-		    newX = curX - votes_tot*xFactor;
+		    if (rightToLeft) {
+			newX = curX - votes_tot*xFactor;
+		    } else {
+			newX = curX + votes_tot*xFactor;
+		    }
+		    // newX = curX - votes_tot*xFactor;
 		    curX = cand_only_ballots_add(mysvg,tmprnk,newX,rkY,curX,rkH,mystr);
 		    first_rect = false;
 		}
@@ -282,7 +315,12 @@ function draw_bar_round_first(mysvg,row,key,value,xFactor,curX,curY,filteredSegm
 	    var tmprnk = rvalue.Ranks.split(",");
 	    if (tmprnk[0] == SortedCandidates[k][0]) {
 		rvalue.FormattedRanks = first_tooltip_str(tmprnk);
-		newX = curX - parseInt(rvalue.Number)*xFactor;
+		if (rightToLeft) {
+		    newX = curX - parseInt(rvalue.Number)*xFactor;
+		} else {
+		    newX = curX + parseInt(rvalue.Number)*xFactor;
+		}
+		// newX = curX - parseInt(rvalue.Number)*xFactor;
 		var mystr = myTitleCase(value[0]) + " accumulated " + votes_tot.toLocaleString('en-US') +
 		    " votes in Round " + rvalue.Segment.toString() + " that ranked<br/>" + rvalue.FormattedRanks;
 		curX = first_ballots_add(mysvg,tmprnk,newX,rkY,curX,rkH,mystr);
@@ -290,13 +328,6 @@ function draw_bar_round_first(mysvg,row,key,value,xFactor,curX,curY,filteredSegm
 	};
     };
     return curX;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// code for limiting number of candidates to show
-///////////////////////////////////////////////////////////////////////////////
-function find_top_candidates(mydata) {
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -407,6 +438,18 @@ function replace_with_other(KeepCands,SortedCands,mydata) {
 // mydata is the list of dictionaries holding the ballot info
 // mymeta is a dictionary holding info like "number of winners"
 function make_chart(orig_data, mymeta) {
+
+    // get the direction to put segments
+    var form = document.getElementById("dirn")
+    var form_val;
+    if (form[1].checked) {
+	rightToLeft = true;
+    } else {
+	rightToLeft = false;
+    }
+    // for(var i=0; i<form.length; i++){
+    //   if(form[i].checked){
+    //     form_val = form[i].id;}}
 
     // console.log("mc: ",selectedMaxCands);
 
@@ -531,13 +574,18 @@ function make_chart(orig_data, mymeta) {
 	// we are choosing which bar we are working on
 	var filteredRound = mydata.filter(function (a) { return a.Round === value[0]; });
 	curY = curY - yDiff; 
-	var curX = xOffset + parseInt(value[1])*xFactor; // how far bar extends to the right
+	var curX;
+	if (rightToLeft) {
+	    curX = xOffset + parseInt(value[1])*xFactor; // how far bar extends to the right
+	} else {
+	    curX = xOffset;
+	}
 
-	var sep_arr = [xOffset]
-
+	var sep_arr = [];
+	
 	// put candidate total at right side of bar
 	mysvg.append("text")
-    	    .attr("x",curX + 20)
+    	    .attr("x",xOffset + parseInt(value[1])*xFactor + 20)
     	    .attr("y",curY + rowH/2 + 10)
     	    .attr("font-size",24)
 	    .attr("text-anchor","start")
@@ -545,9 +593,14 @@ function make_chart(orig_data, mymeta) {
 
 	// Add tick mark at right side of bar
 	if (end_separators) {
-	    sep_arr.push(curX)
+	    if (rightToLeft) {
+		sep_arr.push(xOffset + parseInt(value[1])*xFactor);
+	    } else {
+		sep_arr.push(xOffset);
+	    }
 	}
 
+	console.log("Starting x: ",curX);
 	// run through segments
 	// these correspond to the various groups in which the candidate accumulated more votes
 	for (row = 1; row < numRows; row++) {
@@ -617,6 +670,10 @@ function make_chart(orig_data, mymeta) {
 	    }
 
 	sep_arr.push()
+	// var rdAdj = 0;
+	// if (!rightToLeft) {
+	//     rdAdj = 1;
+	// }
 	for (jj = 0; jj < sep_arr.length; jj++) {
 	    // console.log("wha",jj,curY,sep_arr)
 	    mysvg.append("line")
@@ -627,15 +684,15 @@ function make_chart(orig_data, mymeta) {
 		.attr("stroke","#555555")
 		.attr("width",0.25);
 	    // console.log("x",jj,sep_arr[jj+1],sep_arr[jj])
-	    if (jj < sep_arr.length-1 && sep_arr[jj]-sep_arr[jj+1] > 35) {
+	    if (jj < sep_arr.length-1 && ((rightToLeft && sep_arr[jj]-sep_arr[jj+1] > 35) || (!rightToLeft && sep_arr[jj+1]-sep_arr[jj] > 35))) {
 		// console.log("here i am",jj)
 		mysvg.append("text")
 		    .attr("x",(sep_arr[jj+1]+sep_arr[jj])/2)
 		    .attr("y",curY + rowH + 12)
 		    .attr("text-anchor","middle")
 		    .attr("font-size",12)
-		    .attr("fill","#bbbbbb")
-		    .text("Rd " + (jj).toString());
+		    .attr("fill","#999999")
+		    .text("Rd " + (jj+1).toString());
 	    }
 		
 	}
@@ -652,6 +709,9 @@ function update(selectedOption) {
 d3.select("#selectButton").on("change", function(d) {
     // recover the option that has been chosen
     selectedOption = d3.select(this).property("value")
+    d3.select("#maxCandsMenu")
+	.property('value',"100");
+    selectedMaxCands = "100";
     update(selectedOption)
 })
 
@@ -659,8 +719,9 @@ d3.select("#selectButton").on("change", function(d) {
 d3.select("#colorMenu").on("change", function(d) {
     // run the updateChart function with this selected option
     selectedColorMode = color_dict[d3.select(this).property("value")];
+    // console.log(selectedColorMode);
     selectedOption = d3.select("#selectButton").property("value");
-    selectedMaxCands = d3.select("maxCandsMenu").property("value");
+    // selectedMaxCands = d3.select("maxCandsMenu").property("value");
     update(selectedOption);
 })
 
@@ -672,6 +733,17 @@ d3.select("#maxCandsMenu").on("change", function(d) {
     selectedMaxCands = d3.select(this).property("value");
     update(selectedOption);
 })
+
+// When the button is changed, run the updateChart function
+d3.select("#dirn").on("change", function(d) {
+    selectedOption = d3.select("#selectButton").property("value");
+    update(selectedOption);
+})
+
+// d3.select
+// var dataDim = d3.select("#dimensions")
+// 	dataDim.on("change", changeIt)
+ 
 
 // console.log("aaa",elec_keys[0])
 // initialize the chart to the first selection
