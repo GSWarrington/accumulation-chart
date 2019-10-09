@@ -1,126 +1,46 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[20]:
-
-
 # Code for working with RCV data
 # November 30, 2018
 # Gregory S. Warrington
 
-get_ipython().magic(u'matplotlib inline')
+# get_ipython().magic(u'matplotlib inline')
 import pandas as pd
-import geopandas as gpd
-import numpy as np
-from shapely.geometry import Polygon
-import matplotlib.pyplot as plt
 import re
+import csv
 
 import math
+import numpy as np
 
-homepath = '/home/gswarrin/research/gerrymander/rcv/'
-
-data_files = ['AUXCVRProofedCVR95RepCD2.xlsx','Nov18CVRExportFINAL2.xlsx','RepCD2-8final.xlsx',              'UOCAVA-AUX-CVRRepCD2.xlsx','Nov18CVRExportFINAL1.xlsx','Nov18CVRExportFINAL3.xlsx',              'UOCAVA2CVRRepCD2.xlsx','UOCAVA-FINALRepCD2.xlsx']
-
-name_dict = {'.*Golden.*':'Golden',            '.*Poliquin.*':'Poliquin',            '.*Bond.*':'Bond',            '.*Hoar.*':'Hoar',            'undervote':'undervote'}
-
-def collect_data(flist):
-    df = pd.DataFrame()
-    for fn in flist:
-        tmpdf = pd.read_excel(homepath + fn)
-        # clean up column headings
-        tmpdf = tmpdf.rename(columns=lambda x: re.sub('Rep. to Congress','',x))
-        tmpdf = tmpdf.rename(columns=lambda x: re.sub('District 2','',x))
-        tmpdf = tmpdf.rename(columns=lambda x: re.sub(' ','',x))
-        # I don't use these
-        tmpdf = tmpdf.drop(columns=['BallotStyle','Precinct'])
-        df = pd.concat([df,tmpdf])
-    # Put candidate names in a simpler format
-    df = df.replace(name_dict,regex=True)
-    return df
-
-# read in the individual votes
-df = collect_data(data_files)
-# to illustrate format
-df.tail()
-
-
-# In[18]:
-
-
-numrks = 5
-
-def get_perms(x):
-    """ cut down each ballot to a (partial) permutation of the candidates
-    rules according to:
-      https://legislature.maine.gov/legis/bills/bills_127th/billtexts/IB000201.asp
+homepath = '/home/gswarrin/research/gerrymander/accumulation-chart/'
     
-    truncate as soon as two undervotes or an overvote
-    remove occurrences of a candidate after the first appearance
-    remove undervotes
-    results are placed in a dictionary with keys given a string representing
-      the partial permutations and values representating the multiplicity
-    
-    So, for example:
-    ['undervote','Bond','Bond','overvote','Hoar'] -> 'Bond'
-    ['Golden','Golden','Golden','Hoar','Golden'] -> 'Golden_Hoar'
-    ['undervote','undervote','Poliquin','Bond','Golden'] -> ''
+##########################################################################################
+# code for converting dataframe of ballots into appropriate format for accumulation charts
+##########################################################################################
+
+def make_dict_from_csv(fn):
     """
-    
-    # collect entries of ballot in an array
-    a = [x[i] for i in range(1,numrks+1)]
-    
-    # truncate as soon as we have an overvote
-    if 'overvote' in a:
-        a = a[:a.index('overvote')] # index will find the first occurrence
-        
-    # truncate once we have two successive undervotes
-    isdone = False
-    for i in range(len(a)-1):
-        if (not isdone) and a[i] == a[i+1] and a[i] == 'undervote':
-            a = a[:i+1]
-            isdone = True
-            
-    # if an entry is repeated keep only first occurrence
-    isdone = False
-    keep = [True for x in range(len(a))]
-    for i in range(1,len(a)):
-        for j in range(i):
-            if a[i] == a[j]:
-                keep[i] = False
-    inds = list(filter(lambda i: keep[i], range(len(a))))
-    a = list(map(lambda y: a[y], inds))
-    
-    # filter out any remaining undervotes
-    a = list(filter(lambda x: x != 'undervote', a))
-    
-    # turn each partial permutation into a key to index a dictionary that 
-    # keeps track of the number of ballots with each permutation type
-    astr = '_'.join(a)
-    if astr in perm_dict.keys():
-        perm_dict[astr] += 1
-    else:
-        # print a sample ballot leading to a given partial permutation
-        # print(astr,b)
-        perm_dict[astr] = 1
-
-
-# dictionary whose keys are partial permutations and values are number of ballots
-# with that partial permutation
-# perm_dict = dict()
-# compute the partial permutations and put them in perm_dict
-# df.apply(get_perms, axis=1)
-    
-
-
-# In[60]:
-
-
-import csv
+    convert listing of partial permutations with multiplicity into dict
+    input file should have one line for each "type" of ballot
+    - first entry is number of ballots of this type
+    - successive entries are ranked candidates (no non-votes or repeats)
+    - all candidates are comma-separated
+    """
+    d = dict()
+    for x in open(fn,'r'):
+        line = x.rstrip().split(',')
+        lbl = '_'.join(line[1:])
+        if lbl not in d.keys():
+            d[lbl] = int(line[0])
+        else:
+            d[lbl] += int(line[0])
+        # print("%d -- %s" % (int(line[0]),lbl))
+    return d
 
 def count_round(d,verbose=True):
     """ add votes in for given round
-    d is a dictionary with the reduced ballots as keys and counts as avlues
+    d is a dictionary with the reduced ballots as keys and counts as values
     """
     cand_votes_dict = dict()
     for k in d.keys():
@@ -263,6 +183,7 @@ def get_pedigrees(orig_d,losers,makecsv=False,csvfn=''):
 def evaluate_election(orig_d):
     """
     determine election results
+    specifically, tells us which candidate gets eliminated in each round
     """
     d = orig_d
     round = 0
@@ -277,22 +198,11 @@ def evaluate_election(orig_d):
         losers.append(l)
     return losers
         
-def make_dict_from_csv(fn):
-    """
-    convert listing of partial permutations with multiplicity into dict
-    """
-    d = dict()
-    for x in open(fn,'r'):
-        line = x.rstrip().split(',')
-        lbl = '_'.join(line[1:])
-        if lbl not in d.keys():
-            d[lbl] = int(line[0])
-        else:
-            d[lbl] += int(line[0])
-        # print("%d -- %s" % (int(line[0]),lbl))
-    return d
-
     
+#################################################################################################
+# code for each specific election we're working with
+#################################################################################################
+
 # evaluate_election(perm_dict)
 # Burlington
 # bfpd = make_dict_from_csv('/home/gswarrin/research/gerrymander/rcv/burlington-2009-votes.csv')
@@ -317,566 +227,12 @@ med = make_dict_from_csv('/home/gswarrin/research/accumulation-chart/meprim-outp
 med_losers = evaluate_election(med)
 get_pedigrees(med,med_losers,makecsv=True,csvfn='MEPrim-csv-d3')
     
-
-
-# In[13]:
-
-
 # for k in perm_dict.keys():
 #     print("%s,%s,%s" % (k,perm_dict[k],','.join(k.split('_'))))
 bfpd = make_dict_from_csv('/home/gswarrin/research/gerrymander/rcv/burlington-2009-votes.csv')
 
-def list_some_votes(d,a,b,c):
-    """
-    list number of votes satisfying a certain property
-    """
-    cnt = 0
-    for k in d.keys():
-        tup = k.split('_')
-        if a in tup and b in tup:
-            if tup.index(a) < tup.index(b) and (c not in tup or (tup.index(b) < tup.index(c))):
-                print("%s %s" % (d[k],k))
-                cnt = cnt + d[k]
-    print("%d" % (cnt))
-                
-list_some_votes(bfpd,'Montroll','Wright','Kiss')
-
-
-# In[195]:
-
-
-# code for playing around with the patterns of voting that arise
-# not really functional at the moment
-
-pat_dict = dict() # patterns of votes
-d = dict()        # patterns of 1's and -'s'
-
-def get_pat(x):
-    """ truncate as soon as illegal, but don't excise undervotes
-    """
-    a = [x[1],x[2],x[3],x[4],x[5]]
-    b = [x[1],x[2],x[3],x[4],x[5]]
-    # truncate as soon as we have an overvote
-    if 'overvote' in a:
-        for i in range(a.index('overvote'),len(a)):
-            a[i] = '-'
-            
-    # truncate once we have two equal in a row
-    # not sure why this isn't covered by below loop, but whatever
-    for i in range(len(a)-1):
-        if a[i] == a[i+1] and (a[i] != 'undervote'):
-            for j in range(i+1,len(a)):
-                a[j] = '-'
-    # if x[0] == 223572:
-    #     print(a)
-    isdone = False
-    for i in range(len(a)-1):
-        for j in range(i+1,len(a)):
-            if (not isdone) and (a[i] == a[j]) and (a[i] != 'undervote'):
-                for k in range(j,len(a)):
-                    a[k] = '-'
-                isdone = True
-                   
-    for i in range(len(a)):
-        if a[i] not in ['undervote','-']:
-            a[i] = '1'
-        if a[i] == 'undervote':
-            a[i] = '-'
-    # a = list(filter(lambda x: x != 'undervote', a))
-    astr = ''.join(a)
-    if astr == '1----':
-        if '_'.join(b) in d.keys():
-            d['_'.join(b)] += 1
-        else:
-            d['_'.join(b)] = 1
-        # print(x)
-
-    if astr in pat_dict.keys():
-        pat_dict[astr] += 1
-    else:
-        print(astr,b)
-        pat_dict[astr] = 1
-    # print(a)
-
-name_pat_dict = dict()
-def get_name_pat(x):
-    """ replace names with 1's, blanks with underscores, and overvotes with X's
-    don't worry about legality or where it would be truncated.
-    """
-    a = [x[1],x[2],x[3],x[4],x[5]]
-    for i in range(len(a)):
-        if a[i] in ['Bond','Hoar','Poliquin','Golden']:
-            a[i] = '1'
-        elif a[i] in ['overvote']:
-            a[i] = 'X'
-        elif a[i] in ['undervote']:
-            a[i] = '-'
-    
-    # a = list(filter(lambda x: x != 'undervote', a))
-    astr = ''.join(a)
-    
-    if astr in name_pat_dict.keys():
-        name_pat_dict[astr] += 1
-    else:
-        # print(astr,b)
-        name_pat_dict[astr] = 1
-    # print(a)
-
-df.apply(get_name_pat, axis=1)
-for k in name_pat_dict.keys():
-    print(name_pat_dict[k],k)
-
-
-# In[1]:
-
-
-# import pysankey as sankey
-# df = pd.DataFrame()
-# df['']
-
-from floweaver import *
-
-flows = pd.read_csv('/home/gswarrin/research/gerrymander/rcv/test_elec.csv')
-flows
-
-# Set the default size to fit the documentation better.
-size = dict(width=570, height=300)
-
-nodes = {
-    'Round1': ProcessGroup(['Wright','Kiss','Montroll','Smith']),
-    'Round3': ProcessGroup(['Wright','Kiss']),
-}
-
-
-# In[ ]:
-
-
-{
-  "nodes": [
-    {
-      "id": "Wright1",
-      "title": "Wright"
-    },
-    {
-      "id": "Kiss1",
-      "title": "Kiss"
-    },
-    {
-      "id": "Montroll1",
-      "title": "Montroll"
-    },
-    {
-      "id": "Smith1",
-      "title": "Smith"
-    },
-    {
-      "id": "Wright2",
-      "title": "Wright"
-    },
-    {
-      "id": "Kiss2",
-      "title": "Kiss"
-    },
-    {
-      "id": "Montroll2",
-      "title": "Montroll"
-    },
-    {
-      "id": "Wright3",
-      "title": "Wright"
-    },
-    {
-      "id": "Kiss3",
-      "title": "Kiss"
-    }
-     
-  ],
-  "links": [
-    {
-      "source": "Wright1",
-      "target": "Wright2",
-      "value": 2951,
-      "type": "1"
-    },
-    {
-      "source": "Kiss1",
-      "target": "Kiss2",
-      "value": 2585,
-      "type": "2"
-    },
-    {
-      "source": "Montroll1",
-      "target": "Montroll2",
-      "value": 2063,
-      "type": "3"
-    },
-    {
-      "source": "Smith1",
-      "target": "Wright2",
-      "value": 343,
-      "type": "1"
-    },
-    {
-      "source": "Smith1",
-      "target": "Kiss2",
-      "value": 396,
-      "type": "2"
-    },
-    {
-      "source": "Smith1",
-      "target": "Montroll2",
-      "value": 491,
-      "type": "3"
-    },
-    {
-      "source": "Montroll2",
-      "target": "Wright3",
-      "value": 767,
-      "type": "1"
-    },
-    {
-      "source": "Montroll2",
-      "target": "Kiss3",
-      "value": 1332,
-      "type": "2"
-    }
-
-  ],
-  "groups": [
-    {
-      "id": "g",
-      "nodes": [
-        "a",
-        "b"
-      ],
-      "title": "Group of nodes in top band"
-    }
-  ],
-  "order": [
-    [
-      [
-        "Wright1",
-        "Kiss1",
-          "Montroll1",
-          "Smith1"
-      ],
-      []
-    ],
-    [
-      [
-        "Wright2",
-          "Kiss2",
-          "Montroll2"
-      ],
-        []
-    ],
-    [
-      [
-        "Wright3",
-        "Kiss3"
-      ],
-      []
-    ]
-  ]
-}
-
-
-# In[ ]:
-
-
-
-
-
-# In[39]:
-
-
-# read in MN data
-
-mn_name_dict = {',':';'}
-
-def mn_collect_data(flist):
-    df = pd.DataFrame()
-    for fn in [flist]:
-        tmpdf = pd.read_excel('/home/gswarrin/research/accumulation-chart/' + fn)
-        # clean up column headings
-        tmpdf = tmpdf.rename(columns=lambda x: re.sub(' CHOICE MAYOR MINNEAPOLIS','',x))
-        # tmpdf = tmpdf.rename(columns=lambda x: re.sub('District 2','',x))
-        # tmpdf = tmpdf.rename(columns=lambda x: re.sub(' ','',x))
-        # I don't use these
-        # tmpdf = tmpdf.drop(columns=['Precinct'])
-        df = pd.concat([df,tmpdf])
-    # Put candidate names in a simpler format
-    df = df.replace(mn_name_dict,regex=True)
-    return df
-
-# read in the individual votes
-mndf = mn_collect_data('2013-mayor-cvr.xlsx')
-# to illustrate format
-mndf.tail()
-
-
-# In[22]:
-
-
-df.tail()
-
-
-# In[40]:
-
-
-def mn_get_perms(x):
-    """ cut down each ballot to a (partial) permutation of the candidates
-    rules according to:
-      https://legislature.maine.gov/legis/bills/bills_127th/billtexts/IB000201.asp
-    
-    truncate as soon as two undervotes or an overvote
-    remove occurrences of a candidate after the first appearance
-    remove undervotes
-    results are placed in a dictionary with keys given a string representing
-      the partial permutations and values representating the multiplicity
-    
-    So, for example:
-    ['undervote','Bond','Bond','overvote','Hoar'] -> 'Bond'
-    ['Golden','Golden','Golden','Hoar','Golden'] -> 'Golden_Hoar'
-    ['undervote','undervote','Poliquin','Bond','Golden'] -> ''
-    """
-    
-    # collect entries of ballot in an array
-    a = [x[i] for i in range(1,3+1)]
-    
-    print(a)
-    # truncate as soon as we have an overvote
-    if 'overvote' in a:
-        a = a[:a.index('overvote')] # index will find the first occurrence
-        
-    # truncate once we have two successive undervotes
-    isdone = False
-    for i in range(len(a)-1):
-        if (not isdone) and a[i] == a[i+1] and a[i] == 'undervote':
-            a = a[:i+1]
-            isdone = True
-            
-    # if an entry is repeated keep only first occurrence
-    isdone = False
-    keep = [True for x in range(len(a))]
-    for i in range(1,len(a)):
-        for j in range(i):
-            if a[i] == a[j]:
-                keep[i] = False
-    inds = list(filter(lambda i: keep[i], range(len(a))))
-    a = list(map(lambda y: a[y], inds))
-    
-    # filter out any remaining undervotes
-    a = list(filter(lambda x: x != 'undervote', a))
-    
-    # turn each partial permutation into a key to index a dictionary that 
-    # keeps track of the number of ballots with each permutation type
-    astr = '_'.join(a)
-    if astr in perm_dict.keys():
-        perm_dict[astr] += 1
-    else:
-        # print a sample ballot leading to a given partial permutation
-        # print(astr,b)
-        perm_dict[astr] = 1
-
-# dictionary whose keys are partial permutations and values are number of ballots
-# with that partial permutation
-perm_dict = dict()
-numrks = 3
-# compute the partial permutations and put them in perm_dict
-mndf.apply(mn_get_perms, axis=1)
-
-
-# In[41]:
-
-
-f = open('/home/gswarrin/research/accumulation-chart/mn-output.csv', "w")
-for k in list(perm_dict.keys()):
-    f.write("%d,%s\n" % (perm_dict[k],re.sub('_',',',k)))
-f.close()
-
-
-# In[57]:
-
-
-# read in MN data
-
-meprim_name_dict = {',':';',
-                    'undervote': 'undervote',
-       'Cote; Adam Roland': 'Adam Cote',
-       'Sweet; Elizabeth A.': 'Elizabeth Sweet',
-       'Mills; Janet T.': 'Janet Mills',
-       'Russell; Diane Marie': 'Diane Russell',
-       'Dion; Mark N.': 'Mark Didn',
-       'Eves; Mark W.': 'Mark Eves',
-       'Dion; Donna J.': 'Donna Dion',
-       'overvote': 'overvote',
-       'Write-in': 'WriteIn'};
-
-def meprim_collect_data(flist):
-    df = pd.DataFrame()
-    for fn in [flist]:
-        tmpdf = pd.read_excel('/home/gswarrin/research/accumulation-chart/' + fn)
-        # clean up column headings
-        tmpdf = tmpdf.rename(columns=lambda x: re.sub('DEM Governor ','',x))
-        tmpdf = tmpdf.rename(columns=lambda x: re.sub(' Choice','',x))
-        # tmpdf = tmpdf.rename(columns=lambda x: re.sub('District 2','',x))
-        # tmpdf = tmpdf.rename(columns=lambda x: re.sub(' ','',x))
-        # I don't use these
-        tmpdf = tmpdf.drop(columns=['Ballot Style','Precinct'])
-        df = pd.concat([df,tmpdf])
-    # Put candidate names in a simpler format
-    df = df.replace(meprim_name_dict,regex=True)
-    return df
-
-# read in the individual votes
-mepdf = meprim_collect_data('2018-maine-governor-primary-dem-cvr.xlsx')
-# to illustrate format
-mepdf.tail()
-print(mepdf.columns)
-# mepdf['1st'].summary()
-
-
-# In[58]:
-
-
-def meprim_get_perms(x):
-    """ cut down each ballot to a (partial) permutation of the candidates
-    rules according to:
-      https://legislature.maine.gov/legis/bills/bills_127th/billtexts/IB000201.asp
-    
-    truncate as soon as two undervotes or an overvote
-    remove occurrences of a candidate after the first appearance
-    remove undervotes
-    results are placed in a dictionary with keys given a string representing
-      the partial permutations and values representating the multiplicity
-    
-    So, for example:
-    ['undervote','Bond','Bond','overvote','Hoar'] -> 'Bond'
-    ['Golden','Golden','Golden','Hoar','Golden'] -> 'Golden_Hoar'
-    ['undervote','undervote','Poliquin','Bond','Golden'] -> ''
-    """
-    
-    # collect entries of ballot in an array
-    a = [x[i] for i in range(1,8+1)]
-    
-    print(a)
-    # truncate as soon as we have an overvote
-    if 'overvote' in a:
-        a = a[:a.index('overvote')] # index will find the first occurrence
-        
-    # truncate once we have two successive undervotes
-    isdone = False
-    for i in range(len(a)-1):
-        if (not isdone) and a[i] == a[i+1] and a[i] == 'undervote':
-            a = a[:i+1]
-            isdone = True
-            
-    # if an entry is repeated keep only first occurrence
-    isdone = False
-    keep = [True for x in range(len(a))]
-    for i in range(1,len(a)):
-        for j in range(i):
-            if a[i] == a[j]:
-                keep[i] = False
-    inds = list(filter(lambda i: keep[i], range(len(a))))
-    a = list(map(lambda y: a[y], inds))
-    
-    # filter out any remaining undervotes
-    a = list(filter(lambda x: x != 'undervote', a))
-    
-    # turn each partial permutation into a key to index a dictionary that 
-    # keeps track of the number of ballots with each permutation type
-    astr = '_'.join(a)
-    if astr in perm_dict.keys():
-        perm_dict[astr] += 1
-    else:
-        # print a sample ballot leading to a given partial permutation
-        # print(astr,b)
-        perm_dict[astr] = 1
-
-# dictionary whose keys are partial permutations and values are number of ballots
-# with that partial permutation
-perm_dict = dict()
-numrks = 8
-# compute the partial permutations and put them in perm_dict
-mepdf.apply(meprim_get_perms, axis=1)
-
-
-# In[59]:
-
-
-f = open('/home/gswarrin/research/accumulation-chart/meprim-output.csv', "w")
-for k in list(perm_dict.keys()):
-    f.write("%d,%s\n" % (perm_dict[k],re.sub('_',',',k)))
-f.close()
-
-
-# In[73]:
-
-
-arr = [[3,3.58e-2],[4,5.14e-5],[5,7.29e-10],[6,8.14e-17],[7,3.9e-26]]
-plt.semilogy([x[0] for x in arr],[x[1] for x in arr])
-# 3.3e-8
-
-
-# In[77]:
-
-
-# plt.plot([0.142578125, 1.30078125, 2.39453125, 2.55859375, 2.064453125, 1.8203125, 0.0])
-# plt.plot([56.80664061540684, 57.503906240289105, 58.75195311507834, 58.89453124005426, 58.32812499014992, 58.374999990142, 56.089843740527904])
-plt.plot([236.66992183503268, 239.28124995959172, 241.66406245918932, 243.43749995888987, 244.65429683368438, 245.4199218335551, 246.02539058345286, 246.21679683342052, 246.13671870843405, 245.8789062084776, 245.09570308360983, 243.84374995882126, 242.0468749591247])
-
-
-# In[78]:
-
-
-plt.plot([56.80664061540684, 57.503906240289105, 58.75195311507834, 58.89453124005426, 58.32812499014992, 58.374999990142, 56.089843740527904])
-
-
-# In[79]:
-
-
-plt.plot([0.   2.5  4.72 6.4  7.72 8.47 8.94 9.11 9.17 8.9  8.14 6.99 5.37])
-
-
-# In[88]:
-
-
-n4 = [ 0.00, 3.18, 5.56, 7.28, 8.47, 9.19, 9.77, 10.03, 9.91, 9.50, 8.95, 7.91, 6.27, ]
-
-
-# In[87]:
-
-
-# plt.plot([ 0.44, 1.21, 2.32, 2.54, 2.07, 1.89, 0.00, ])
-# plt.plot([ 0.23, 1.03, 2.19, 2.39, 1.95, 1.76, 0.00, ])
-# plt.plot([ 0.52, 1.37, 2.41, 2.53, 2.06, 1.80, 0.00, ])
-plt.plot([ 0.38, 1.37, 2.41, 2.56, 2.13, 1.92, 0.00, ])
-
-
-# In[92]:
-
-
-n5 = [ 0.00, 3.55, 6.41, 9.52, 11.50, 13.08, 15.12, 16.43, 17.58, 18.50, 19.33, 19.82, 20.20, 20.35, 20.34, 19.97, 19.58, 18.90, 17.82, 16.33, 14.09, ]
-
-
-# In[93]:
-
-
-plt.plot(n4,[x/2 for x in n5])
-# n=6, but only 1.001
-# plt.plot([ 0.00, 28.09, 38.12, 41.83, 45.04, 47.35, 49.70, 51.69, 53.80, 55.37, 56.55, 58.05, 59.22, 60.40, 61.23, 62.07, 62.87, 63.53, 64.07, 64.35, 64.72, 64.96, 65.00, 64.81, 64.54, 64.09, 63.42, 62.49, 61.28, 59.32, 56.87, ])
-
-
-# In[91]:
-
-
-n5
-
-
-# In[ ]:
-
-
-
-
+###############################################################################################
+# place data in 
+# df = pd.read_csv('MEPrim-csv-d3.csv',sep='\t',dtype={'Number':np.int32})
+df = pd.read_csv('Poll-c3-for-plotting.csv',sep='\t',dtype={'Number':np.int32})
+print(df.to_json(orient='records'))
