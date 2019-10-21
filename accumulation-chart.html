@@ -22,6 +22,7 @@
       <h3><i>This page is an introduction to ideas explained in our (<a href="http://math.depaul.edu/bridget/">Bridget Tenner</a> and <a href="http://www.cems.uvm.edu/~gswarrin/">Greg Warrington</a>) <a href="https://arxiv.org/abs/1903.06095">preprint</a></i>. </h3>
 
       <script src="https://d3js.org/d3.v4.min.js"></script>
+      <script src="elec-cambridge.js"></script>
       <script src="elec-meprim.js"></script>
       <script src="poll-pres-I.js"></script>
       <script src="elec-data.js"></script>
@@ -456,11 +457,11 @@
 	</div>
 
 	<p>Color ballots by: <select id="colorMenu" class="myMenu"></select> (descriptions below chart)</p>
-	<p>Max number of candidates to show: <select id="maxCandsMenu" class="myMenu"></select>
+	<p>Max number of candidates to show: <select id="maxCandsMenu" class="myMenu"></select> (does not work for multi-winner elections)</p>
 	  <form id="dirn">
 	    <input type='radio' id="LtoR" name="mode">Round 1 on left</input>
 	    <input type='radio' id="RtoL" name="mode" checked>Round 1 on right</input>
-	  </form>
+	  </form> 
 
 	<!-- <i>Options for how the data are displayed are located below the chart</i> -->
 	<!-- var x = document.createElement("INPUT"); -->

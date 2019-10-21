@@ -15,7 +15,7 @@ var svgHeight = 800  // height of display window
 var end_separators = true; // whether to place separators at end of the bar
 
 // for tooltips (which place a candidate was ranked)
-var nth_list = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th","11th","12","13th","14th","15th"];
+var nth_list = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th","11th","12","13th","14th","15th","16th","17th","18th","19th","20th","21st","22nd","23rd","24th","25th","26th","27th","28th","29th","30th"];
 
 var selectedOption = d3.select("#selectButton").property("value"); // which election we're plotting
 var selectedColorMode = "crank"; // the default is to color by rank as described in the paper
@@ -234,7 +234,7 @@ function draw_bar_round(mysvg,row,key,value,xFactor,curX,curY,filteredSegment,So
 		var rkY = curY;
 		var rkH = rowH/rks.length;
 		
-		console.log("newX: ",newX);
+		// console.log("newX: ",newX);
 		// "cfirst": color by the first candidate on the ballot
 		rvalue.FormattedRanks = default_tooltip_str(rks);
 		var mystr = myTitleCase(value[0]) + " accumulated " + rvalue.Number.toLocaleString('en-US') +
@@ -488,6 +488,35 @@ function make_chart(orig_data, mymeta) {
 	}
     });
 
+    // Get candidate order from metadata
+    // SortedCandidates 
+    console.log("asdf 0",SortedCandidates.length,CandidateTotals.length,"asdfasdfasdf");
+    if (elec_nwinners(mymeta) > 1) {
+	console.log("Cand Totals----------------------------------");
+	for (jj=0; jj < CandidateTotals.length; jj++) {
+	    console.log(CandidateTotals[jj]);
+	}
+	// console.log("Before----------------------------------");
+	// for (jj=0; jj < SortedCandidates.length; jj++) {
+	//     console.log(SortedCandidates[jj]);
+	// }
+	SortedCandidates = [];
+	order_arr = elec_order(mymeta);
+	for (jj = 0; jj < CandidateTotals.length; jj++) {
+	    console.log(order_arr[jj]);
+	    SortedCandidates.push([order_arr[jj][0],order_arr[jj][2],order_arr[jj][1],order_arr[jj][3]]);
+	}
+	// console.log("After-----------------------------------");
+	// for (jj=0; jj < SortedCandidates.length; jj++) {
+	//     console.log(SortedCandidates[jj]);
+	// }
+	console.log("Cand Totals II----------------------------------");
+	for (jj=0; jj < CandidateTotals.length; jj++) {
+	    console.log(CandidateTotals[jj]);
+	}
+    };
+    console.log("asdf 1",SortedCandidates.length,CandidateTotals.length,"asdfasdfasdf");
+
     // console.log("blah: ",SortedCandidates,typeof(SortedCandidates));
     // the Candidates who are going to get their own line
     // var KeepCandidates = [];
@@ -550,6 +579,11 @@ function make_chart(orig_data, mymeta) {
 
     // get maximum vote total - clunky!
     var maxVotes = 0;
+    console.log("asdf",SortedCandidates.length,CandidateTotals.length,"asdfasdfasdf");
+    console.log("Cand Totals III----------------------------------");
+    for (jj=0; jj < CandidateTotals.length; jj++) {
+	console.log(CandidateTotals[jj]);
+    }
     for (i = 0; i < SortedCandidates.length; i++) {
 	if (parseInt(CandidateTotals[i]['value']) > maxVotes) {
 	    maxVotes = parseInt(CandidateTotals[i]['value']);
@@ -570,6 +604,8 @@ function make_chart(orig_data, mymeta) {
     ////////////////////////////////////////////////////////////////////////////////
     // run through the candidates, printing bar for each one
     for (const [key, value] of Object.entries(SortedCandidates)) {
+	
+	console.log("ppppp",key,"val: ",value); // ,"tr: ",tr,"rd: ",rd);
 	// Round here refers to which candidate is being eliminated
 	// we are choosing which bar we are working on
 	var filteredRound = mydata.filter(function (a) { return a.Round === value[0]; });
@@ -654,6 +690,15 @@ function make_chart(orig_data, mymeta) {
 		.text(candlabel1);
 	}
 
+	// redo for multi-winner elections
+	if (elec_nwinners(mymeta) > 1) {
+	    mysvg.append("text")
+		.attr("x",5)
+		.attr("y",curY + 4*rowH/4)
+		.attr("font-size",18)
+		.text(SortedCandidates[key][2] + " round " + SortedCandidates[key][3].toString());
+		// .text(SortedCandidates[key][2] + " round " + (parseInt(key)+1).toString());
+	} else {
 	    if (key < (SortedCandidates.length)-1) {
 		mysvg.append("text")
 		    .attr("x",5)
@@ -668,6 +713,7 @@ function make_chart(orig_data, mymeta) {
 		    .attr("font-size",18)
 		    .text("Winner");
 	    }
+	}
 
 	sep_arr.push()
 	// var rdAdj = 0;
