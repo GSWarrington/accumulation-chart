@@ -12,11 +12,12 @@ material, can be found
 
 As these charts illustrate detailed data about how ballots with
 different partial rankings are reallocated during the tabulation
-process, they require input data that are more detailed than for many
-types of illustrations. In particular it is **not** enough to know the
-number of votes each candidate has garnered at each round of the
-election. Instead, one must use an accumulation chart, one must have
-a tabulator output data suitable for input into the accumulation chart.
+process, they require input data that are more detailed than that
+needed for many types of illustrations. In particular it is **not**
+enough to know the number of votes each candidate has garnered at each
+round of the election. Instead, one must use an accumulation chart,
+one must have a tabulator output data suitable for input into the
+accumulation chart.
 
 This repository breaks into the three parts described below. Note that
 most of the code could use an overhaul. 
@@ -93,10 +94,12 @@ with the following headers and the same data as described above. For
 example, here are the first few rows for the 2017 Cambridge City
 Council election.
 
+```
 Ballot  Round   Segment Number  Ranks
 0       Simmons 1       2253    Simmons
 1       Tierney 1       779     Tierney
 2       Carlone 1       1176    Carlone
+```
 
 Arguments are the .csv/.tsv file and the variable name to assign.
 
