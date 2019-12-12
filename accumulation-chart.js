@@ -1,5 +1,4 @@
-// 
-// my first javascript. :)
+// Copyright (c) 2019 Bridget Eileen Tenner and Gregory S. Warrington 
 
 ////////////////////////////////////////
 // general layout parameters (in pixels)
