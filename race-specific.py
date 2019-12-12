@@ -10,7 +10,7 @@ import csv
 
 import math
 
-homepath = '/home/gswarrin/research/gerrymander/accumulation-chart/'
+homepath = '/home/gswarrin/research/Active_proj/accumulation-chart/'
 
 #########################################################################################
 # code for reading raw ballot data into a dataframe of ballots
@@ -65,6 +65,43 @@ meprime_elec_dict = {'data_files': ['2018-maine-governor-primary-dem-cvr.xlsx'],
 ###########################################################################
 # San Francisco 
 
+# 2019 DA
+sanfran_2019_DA_elec_dict = {'data_files': ['san_francisco/2019_DA/DA-ballots.xlsx'],\
+                             'name_dict': {',':';',
+                                  'undervote': 'undervote',
+                                  'overvote': 'overvote',
+                                  'Write-in': 'WriteIn'},\
+                             'drop_cols': [],\
+                             'col_renamings': {},\
+                             'outfile': 'data/san_francisco/2019_DA/DA-compiled',\
+                             'numrks': 4}
+
+# 2019 Mayor
+sanfran_2019_Mayor_elec_dict = {'data_files': ['san_francisco/2019_DA/Mayor-ballots.xlsx'],\
+                                'name_dict': {',':';',
+                                              'undervote': 'undervote',
+                                              'overvote': 'overvote',
+                                              'Write-in': 'WriteIn'},\
+                                'drop_cols': [],\
+                                'col_renamings': {},\
+                                'outfile': 'data/san_francisco/2019_DA/Mayor-compiled',\
+                                'numrks': 6}
+
+# 2019 Supervisor
+sanfran_2019_Supervisor_elec_dict = \
+    {'data_files': ['san_francisco/2019_DA/Supervisor-ballots.xlsx'],\
+     'name_dict': {',':';',
+                   'undervote': 'undervote',
+                   'overvote': 'overvote',
+                   'outfile': 'data/san_francisco/2019_DA/Supervisor-compiled',\
+                   'Write-in': 'WriteIn'},\
+     'drop_cols': [],\
+     'col_renamings': {},\
+     'numrks': 4}
+
+###########################################################################
+# San Francisco 
+
 # was sf_candidate_dict
 sf_name_dict = {
     '0000178': 'Bravo',
@@ -100,7 +137,7 @@ def gen_collect_data(flist,name_dict,drop_cols,col_renamings):
         df = pd.concat([df,tmpdf])
 
     # Put candidate names in a simpler format
-    df = df.replace(me_2nd_2018_name_dict,regex=True)
+    df = df.replace(name_dict,regex=True)
     return df
 
 def gen_get_perms(x,**kwargs):
@@ -121,7 +158,7 @@ def gen_get_perms(x,**kwargs):
     """
     
     # collect entries of ballot in an array
-    a = [x[i] for i in range(1,kwargs[numrks]+1)]
+    a = [x[i] for i in range(1,kwargs['numrks']+1)]
     
     # truncate as soon as we have an overvote
     if 'overvote' in a:
@@ -147,10 +184,11 @@ def gen_get_perms(x,**kwargs):
     # filter out any remaining undervotes
     a = list(filter(lambda x: x != 'undervote', a))
     
-    perm_dict = kwargs[pdict]
+    perm_dict = kwargs['pdict']
 
     # turn each partial permutation into a key to index a dictionary that 
     # keeps track of the number of ballots with each permutation type
+    # print("a: ",a)
     astr = '_'.join(a)
     if astr in perm_dict.keys():
         perm_dict[astr] += 1
@@ -163,16 +201,16 @@ def process_election_data(ed):
     df = gen_collect_data(flist=ed['data_files'],name_dict=ed['name_dict'],\
                           drop_cols=ed['drop_cols'],col_renamings=ed['col_renamings'])
     perm_dict = dict()
-    df.apply(gen_get_perms, axis=1, numrks=elec_dict['numrks'], perm_dict=perm_dict)
+    df.apply(gen_get_perms, axis=1, numrks=ed['numrks'], pdict=perm_dict)
 
-    fn = '/home/gswarrin/research/accumulation-chart/' + ed[outfile] + 'csv'
+    fn = '/home/gswarrin/research/Active_proj/accumulation-chart/' + ed['outfile'] + '.csv'
     f = open(fn, "w")
     for k in list(perm_dict.keys()):
         f.write("%d,%s\n" % (perm_dict[k],re.sub('_',',',k)))
     f.close()
 
 ##################################################################################
-# for SF data - which is stored completely differently
+# for pre-2019 SF data - which is stored completely differently
 ##################################################################################
 
 def read_ballots(fn):
@@ -232,12 +270,15 @@ def read_ballots(fn):
         print("%d,%s" % (rankd[k],k))
 
     # to fix
-    fn = '/home/gswarrin/research/accumulation-chart/' + ed[outfile] + 'csv'
+    fn = '/home/gswarrin/research/accumulation-chart/' + ed['outfile'] + 'csv'
     f = open(fn, "w")
     for k in list(perm_dict.keys()):
         f.write("%d,%s\n" % (perm_dict[k],re.sub('_',',',k)))
     f.close()
 
 # have 92197 instead of 92121
-read_ballots('20180627_ballotimage.txt',ed)
+# Old san fran?
+# read_ballots('20180627_ballotimage.txt',ed)
 
+# 11.10.19
+process_election_data(sanfran_2019_DA_elec_dict)

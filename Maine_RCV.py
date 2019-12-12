@@ -128,7 +128,7 @@ def get_pedigrees(orig_d,losers,makecsv=False,csvfn=''):
     list pedigrees for each candidate
     """
     if makecsv:
-        csvfile = open('/home/gswarrin/research/accumulation-chart/' + csvfn + '.csv', mode='w')
+        csvfile = open('/home/gswarrin/research/Active_proj/accumulation-chart/' + csvfn + '.csv', mode='w')
         csv_writer = csv.writer(csvfile, delimiter='\t', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         csv_writer.writerow(['Ballot','Round','Segment','Number','Ranks'])
     
@@ -223,16 +223,21 @@ def evaluate_election(orig_d):
 # get_pedigrees(mnd,mn_losers,makecsv=True,csvfn='MN-csv-d3')
 
 # Maine primary
-med = make_dict_from_csv('/home/gswarrin/research/accumulation-chart/meprim-output.csv')
-med_losers = evaluate_election(med)
-get_pedigrees(med,med_losers,makecsv=True,csvfn='MEPrim-csv-d3')
+# med = make_dict_from_csv('/home/gswarrin/research/accumulation-chart/meprim-output.csv')
+# med_losers = evaluate_election(med)
+# get_pedigrees(med,med_losers,makecsv=True,csvfn='MEPrim-csv-d3')
     
+# SF 2019 DA
+sfdad = make_dict_from_csv('/home/gswarrin/research/Active_proj/accumulation-chart/data/san_francisco/2019_DA/DA-compiled.csv')
+sfdad_losers = evaluate_election(sfdad)
+get_pedigrees(sfdad,sfdad_losers,makecsv=True,csvfn='SF-DA-2019-csv-d3')
+
 # for k in perm_dict.keys():
 #     print("%s,%s,%s" % (k,perm_dict[k],','.join(k.split('_'))))
-bfpd = make_dict_from_csv('/home/gswarrin/research/gerrymander/rcv/burlington-2009-votes.csv')
+# bfpd = make_dict_from_csv('/home/gswarrin/research/gerrymander/rcv/burlington-2009-votes.csv')
 
 ###############################################################################################
 # place data in 
-# df = pd.read_csv('MEPrim-csv-d3.csv',sep='\t',dtype={'Number':np.int32})
-df = pd.read_csv('Poll-c3-for-plotting.csv',sep='\t',dtype={'Number':np.int32})
-print(df.to_json(orient='records'))
+## df = pd.read_csv('MEPrim-csv-d3.csv',sep='\t',dtype={'Number':np.int32})
+# df = pd.read_csv('Poll-c3-for-plotting.csv',sep='\t',dtype={'Number':np.int32})
+# print(df.to_json(orient='records'))

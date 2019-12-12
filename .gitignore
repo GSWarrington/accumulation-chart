@@ -3,6 +3,9 @@ notes.txt
 data
 old
 pics
-tabulator
+tabulator*
 story.txt
+*.png
+*.csv
+*~
 

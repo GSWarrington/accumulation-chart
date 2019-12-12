@@ -13,524 +13,92 @@
       gtag('config', 'UA-106392527-2');
     </script>
 
-    <title>Accumulation charts for Ranked-Choice (Instant-Runoff) Voting</title>
+    <title>Accumulation Charts for Ranked-Choice (Instant-Runoff) Voting</title>
   </head>
   <body>
     <div class="content">
-      <h1>Accumulation charts for Ranked-Choice (Instant-Runoff) Voting</h1>
+      <h1>Accumulation Charts for Ranked-Choice (Instant-Runoff) Voting</h1>
 
-      <h3><i>This page is an introduction to ideas explained in our (<a href="http://math.depaul.edu/bridget/">Bridget Tenner</a> and <a href="http://www.cems.uvm.edu/~gswarrin/">Greg Warrington</a>) <a href="https://arxiv.org/abs/1903.06095">preprint</a></i>. </h3>
+      <h5><i>Implementation of idea explained in our (<a href="http://math.depaul.edu/bridget/">Bridget Tenner</a> and <a href="http://www.cems.uvm.edu/~gswarrin/">Greg Warrington</a>) <a href="https://arxiv.org/abs/1903.06095">preprint</a> to appear in the December 2019 <a href="https://www.ams.org/notices">Notices of the AMS</a>.<br> <b><a href="accumulation-chart-info.html" target="_blank">Information on how to read the charts.</a></b></i></h5>
 
       <script src="https://d3js.org/d3.v4.min.js"></script>
-      <script src="elec-cambridge.js"></script>
+
+      <!-- Tabulation data for individual elections -->
+
+      <script src="elec-sf_2019_da_elec_data.js"></script>
+      <script src="elec-cam_council_2017.js"></script>
+      <script src="elec-cam_school_2017.js"></script>
+      <!-- <script src="elec-cam_council_2015.js"></script> -->
+      <!-- <script src="elec-cam_school_2015.js"></script> -->
+      <!-- <script src="elec-cam_council_2013.js"></script> -->
+      <!-- <script src="elec-cam_school_2013.js"></script> -->
+      <!-- <script src="elec-cam_council_2011.js"></script> -->
+      <!-- <script src="elec-cam_school_2011.js"></script> -->
+      <!-- <script src="elec-cam_council_2009.js"></script> -->
+      <!-- <script src="elec-cam_school_2009.js"></script> -->
+      <!-- <script src="elec-cam_council_2007.js"></script> -->
+      <!-- <script src="elec-cam_school_2007.js"></script> -->
+      <!-- <script src="elec-cam_council_2005.js"></script> -->
+      <!-- <script src="elec-cam_school_2005.js"></script> -->
+      <!-- <script src="elec-cam_council_2003.js"></script> -->
+      <!-- <script src="elec-cam_school_2003.js"></script> -->
       <script src="elec-meprim.js"></script>
       <script src="poll-pres-I.js"></script>
       <script src="elec-data.js"></script>
       <script src="elec-structs.js"></script>
 
-      <!-- Code for collapsible adapted from https://alligator.io/css/collapsible/ -->
-      <div class="wrap-collabsible">
-	<input id="collapsible-what" class="toggle" type="checkbox">
-	<label for="collapsible-what" class="lbl-toggle">What is this page about?</label>
-	<div class="collapsible-content">
-	  <div class="content-inner">
-	    <p>
-	      An <i>accumulation chart</i> is a graphic for displaying the results
-	      of an election held under ranked-choice/instant-runoff voting. (We'll
-	      use "ranked-choice" and "instant-runoff" interchangeably on this
-	      page.) The goals of this page are two-fold:
-	      <ul>
-		<li> To explain how to read an accumulation chart.
-		<li> To convince you that several common approaches
-		  to illustrating the results of ranked-choice
-		  voting elections are un-illuminating and/or
-		  misleading.
-	      </ul>
-	      
-	    <p>Below are accumulation charts for several historical
-	      elections. For instance, the default election shown is the
-	      November, 2018 election for Maine's 2nd congressional
-	      district. Depending on the browser you're using, you should be
-	      able to hover to get tooltips and/or zoom the below chart.</p>
-	    </p>
-	  </div>
-	</div>
-      </div>
-
-      <!-- Code for collapsible adapted from https://alligator.io/css/collapsible/ -->
-      <div class="wrap-collabsible">
-	<input id="collapsible-short" class="toggle" type="checkbox">
-	<label for="collapsible-short" class="lbl-toggle">How is an accumulation chart read? (short version)</label>
-	<div class="collapsible-content">
-	  <div class="content-inner">
-	    <p>
-		An accumulation chart is a bar chart with one bar for
-		each candidate. The top candidate is listed first. The
-		remaining candidates are listed in reverse order of
-		elimination. The length of each bar corresponds to the
-		maximum number of votes each candidate gets.</p>
-
-		<p>Tick marks separate votes accumulated during
-		different rounds. Rounds are ordered from right to
-		left. The vertical coloring within each bar encodes
-		the rankings listed on various batches of ballots.</p>
-		<p
-	      </p>
-	    </div>
-	  </div>
-	</div>
-
-	<!-- Code for collapsible adapted from https://alligator.io/css/collapsible/ -->
-	<div class="wrap-collabsible">
-	  <input id="collapsible-how" class="toggle" type="checkbox">
-	  <label for="collapsible-how" class="lbl-toggle">What is ranked-choice voting and how does it work?</label>
-	  <div class="collapsible-content">
-	    <div class="content-inner">
-	      <p>
-		Ranked-choice voting is a popular election system used
-		around the world. It has recently gained a national
-		profile as it was used to elect a number of Maine
-		statewide races in 2018, including the closely
-		contested election for Maine's 2nd congressional
-		district.</p>
-
-	      <p>
-		Ranked-choice voting depends on the ability of voters
-		to rank multiple candidates for a single office. This
-		allows voters to express more nuanced preferences than
-		is possible in the typical plurality election system
-		used in the United States. <i>It is crucial to
-		remember that voters will frequently vote differently
-		under a ranked-choice voting system than they would
-		under a plurality system.</i></p>
-
-	      <p>
-		Once voters have cast their ballots, the results must
-		be tallied to determine a winner. There are many
-		possibilities of tallying algorithms. What we describe
-		here is the <i>instant-runoff</i> tallying process,
-		which often gets referred to as ranked-choice voting.</p>
-		
-	      <p>
-		The algorithm proceeds in rounds. At the end of each round,
-		one candidate is eliminated. The algorithm stops when there
-		are only two candidates remaining.</p>
-
-	      <p>
-		To determine who gets eliminated in a round, the
-		ballots are sorted into piles according to the
-		highest-ranked candidate not yet eliminated. For
-		example, in the Maine election shown in the default
-		accumulation chart, there are four candidates: Hoar's
-		pile has 6,875 votes, Bond's has 16,552, Poliquin's
-		has 134,184 votes and Golden's has 132,013 votes. Try
-		hovering over the rightmost portions of each bar in
-		the chart. If everything is working, you'll see
-		tooltips displaying these values for each
-		candidate. At this point in the tallying process, the
-		only thing that has been looked at on each ballot is
-		the name of the candidate ranked first.<p>
-
-	      <p>
-		Since Hoar has the fewest votes at this point, the
-		ranked-choice algorithm specifies that Hoar is
-		eliminated at the end of Round 1. Each of the 6,875
-		ballots in Hoar's pile are redistributed to the
-		second-ranked candidates. It turns out that 2,621 of
-		the voters prefer Bond among the remaining three
-		candidates, 889 prefer Poliquin, and 1,203 prefer
-		Golden. If you're keeping track, you'll note that
-		these only add up to 4,713 votes. The remaining 2,162
-		did not indicate a valid second-choice candidate and
-		get set aside. Again, if hovering over the chart
-		works, you'll see these numbers displayed over the
-		portions just to the left of the Round-1 portions of
-		each bar. (This might be a good time to zoom into the chart.)</p>
-
-	      <p>
-		The process continues in this manner until there are only two
-		candidates remaining. The candidate with the most votes at
-		this point is declared the winner.</p>
-	    </div>
-	  </div>
-	</div>
-
-	<!-- Code for collapsible adapted from https://alligator.io/css/collapsible/ -->
-	<div class="wrap-collabsible">
-	  <input id="collapsible-read" class="toggle" type="checkbox">
-	  <label for="collapsible-read" class="lbl-toggle">How is an accumulation chart read? (detailed version)</label>
-	  <div class="collapsible-content">
-	    <div class="content-inner">
-	      <p>
-		If you followed the explanation appearing in the above
-		discription of the ranked-choice algorithm then you already
-		know most of it. The candidates are sorted in reverse order of
-		elimination, with the candidate who gets eliminated in the
-		first round on the bottom and the ultimate winner on the top.
-		The length of each bar indicates the total number of votes
-		garnered by each candidate up to the round in which they are
-		eliminated (or declared the winner).</p>
-
-	      <p>
-		Because candidates accumulate votes during different
-		rounds, the bars are subdivided into horizontal
-		segments. The rightmost segment corresponds to the
-		votes declaring a given candidate as overall
-		favorite. The next segment to the left includes votes
-		for which that candidate is the favorite after one
-		candidate has been eliminated, and so on. The
-		boundaries between adjacent segments are indicated by
-		the tick marks on the top side of each bar.</p>
-
-	      <p>
-		The last feature of accumulation charts to introduce
-		is the coloring scheme for each bar. This coloring is
-		based on the fact that each candidate is represented
-		by a color. You can determine the color just by
-		looking at the rightmost portions of each bar or the
-		color each candidate's name is displayed in. So, for
-		example, Bond is represented by light green in the
-		Maine election.</p>
-
-	      <p>
-		Now imagine each bar as a view of the ballots arranged
-		on a bookshelf. Each ballot is colored from top to
-		bottom according to the colors of the high-ranked
-		candidates. For example, the portion of Bond's bar that is dark
-		green on top and light green on the bottom corresponds to
-		votes in which Hoar was the top-ranked candidate and Bond was
-		the second-ranked candidate. The lower-ranked candidates are
-		not displayed. After Bond gets eliminated, some of these votes
-		will go to Poliquin and some to Golden. For example, the
-		portion of Golden's that is the second from the left indicates
-		that 1,362 voters preferred Hoar as their first choice, Bond
-		as their second choice, and Golden as their third choice, as
-		indicated by the portion of the bar with dark green (Hoar) on
-		top, followed by light green (Bond) in the middle, and dark
-		blue (Golden) on the bottom. The leftmost portion of Golden's
-		bar, with light green on top, corresponds to 3,027 ballots
-		that were never allocated to Hoar since Hoar (dark green) was
-		eliminated before Bond (light green) was.
-	      </p>
-	    </div>
-	  </div>
-	</div>
-
-	<!-- Code for collapsible adapted from https://alligator.io/css/collapsible/ -->
-	<div class="wrap-collabsible">
-	  <input id="collapsible-why" class="toggle" type="checkbox">
-	  <label for="collapsible-why" class="lbl-toggle">How else can ranked-choice votes be displayed?</label>
-	  <div class="collapsible-content">
-	    <div class="content-inner">
-	      <p>
-	      Below we highlight some of the ways in which various
-	      organizations have chosen to convey the results of
-	      ranked-choice voting. We have provided links to sample
-	      usages.</p>
-
-	      <b>Round-1 and Final results.</b>
-	      <p>
-	      It seems to be relatively common to report only
-	      first-round results and final results such as the New
-	      York Times
-	      did <a href="https://www.nytimes.com/elections/results/maine-house-district-2">here</a>
-	      and as reproduced below:
-	      <img width=900 height=300 hspace=10 src="NYTimes-Maine-reproduction.png" alt="New York Times depiction of 2018 Maine 2nd congressional districts results"></p>
-
-	      <p>
-	      This particular depiction has several drawbacks. First,
-	      the main part of the table is devoted to the first-round
-	      results. The first-round results are definitely
-	      important but, at least in elections with more than two
-	      competitive candidates, a very limited part of the
-	      picture. The entire point of ranked-choice voting is
-	      your preferences beyond first choice matter. Depicting
-	      the results in this way undercuts that idea. </p>
-
-	      <p>
-              The results from the final round <i>are</i>
-              included, but rather than being the focus, they are
-              put off to the side. Furthermore, they carry the
-              qualifier that they are the <q>Ranked-Choice
-                Results</q> (in comparison, presumably, to the
-              first-round results that lack any such qualifier).</p>
-
-	      <p>
-	      For a reader unfamiliar with ranked-choice
-	      voting, contradictory signals are sent regarding who
-	      the winner is. The first-round results indicate
-	      Poliquin, but the check-mark and bold-faced percentages
-	      indicate Golden.<p>
-
-	      <p>
-	      Finally, a reader who knows and understands
-	      ranked-choice voting is not provided with the
-	      ballot-level information necessary to understand voters'
-	      preferences on anything other than the most superficial
-	      level.</p>
-
-	      <p> <a href="https://en.wikipedia.org/wiki/2018_United_States_House_of_Representatives_elections_in_Maine">Wikipedia</a>
-	      presents a similar table to the New York Times one,
-	      essentially only showing two of the rounds. Wikipedia
-	      does explicitly list the vote transfers.
-
-	      <img width=900 hspace=10 src="wiki-maine.png" alt="Wikipedia depiction of 2018 Maine 2nd congressional districts results"></p>
-
-	      <b>Final-round results only</b>
-
-	      <p>
-	      Another possibility is to report only the final-round
-	      results as Ballotpedia
-	      does <a href="https://ballotpedia.org/Maine%27s_2nd_Congressional_District_election,_2018">here</a>
-	      (depicted below):</p>
-	      <img width=900 hspace=10 src="ballotpedia.png" alt="Ballotpedia depiction of 2018 Maine 2nd congressional districts results"></p>
-
-	      <p>
-	      Let's compare this option to the <i>New York Times</i>'s
-	      approach of supplying both first-round and final-round
-	      results. By omitting the first-round results,
-	      Ballotpedia has chosen a route that is likely less
-	      confusing for those unfamiliar with ranked-choice
-	      voting. Unfortunately, there <i>is</i> useful
-	      information contained in those first-round totals, and
-	      here the viewer is prevented from seeing it.</p>
-
-	      <p>
-	      Another unfortunate feature of this display is that the
-	      candidates who do not make it to the final round (Hoar
-	      and Bond) are depicted as each failing to garner any
-	      portion of the vote whatsoever.</p>
-
-	      <b>First-round results only</b>
-
-	      <p>
-		<a href="https://www.politico.com/election-results/2018/maine/">Politico</a>
-		takes the approach of providing only the first-round
-		results. Unfortunately, it is then left to
-		a <q>Winner</q> column (with no accompanying
-		explanation) to indicate that Golden was declared the
-		winner, directly contradicting the listed numbers.</p>
-
-	      <img width=900 hspace=10 src="politico.png" alt="Politico depiction of 2018 Maine 2nd congressional districts results"></p>
-	      <p>
-	      <a href="https://www.washingtonpost.com/election-results/maine/?utm_term=.4bf62c893846"><i>The
-	      Washington Post</i></a> takes a similar approach,
-	      although the accompanying text does explain that
-	      ranked-choice voting is used to determine the winner.</p>
-
-
-	      <b>Sankey diagrams</b>
-
-	      <p>
-	      We are unaware of major media outlets using Sankey
-	      diagrams to illustrate the results of ranked-choice
-	      elections, although there are various examples scattered
-	      around the web (such
-	      as <a href="https://www.reddit.com/r/dataisbeautiful/comments/8we8ep/sankey_diagram_of_results_from_maines_democratic/">here</a>
-	      and <a href="https://www.fairvote.org/santa_fe_s_1st_rcv_election_produced_clear_outcomes_and_effective_ballot">here</a>),
-	      including one for the 2013 Minnesota mayoral race. Below
-	      we illustrate a Sankey diagram we constructed for the
-	      Maine race for comparison:</p>
-
-	      <img width=900 hspace=10 src="Maine-sankey.png" alt="Sankey diagram for 2018 Maine 2nd congressional districts results">
-	      <p>
-              Sankey diagrams do an excellent job showing where
-              ballots go during each reallocation step that occurs
-              after someone is eliminated. And they give a qualitative
-              sense of the relative support for each candidate as the
-              tally continues through the various
-              rounds. Unfortunately, given the layout, one is forced
-              to eyeball which of Poliquin or Golden has greater
-              support in the last round. And, although more
-              information is presented (at least qualitatively) about
-              the ballots cast than in the various other depictions
-              we've seen in the media, it is impossible to see, for
-              example, whether there are more Hoar-Bond-Golden votes
-              or more Hoar-Bond-Poliquin votes.</p>
-
-	      <p>
-		One drawback for Sankey diagrams is that it is unclear
-		how easily interpreted they are for people who haven't
-		seen them before. Of course, the same issue arises for
-		any novel representation, including accumulation
-		charts.</p>
-
-	      <b>Stacked bar charts</b>
-
-	      <p> These charts are, at least superficially, similar to
-	      accumulation charts: There is a bar for each candidate
-	      indicating that candidate's share of the vote. As
-	      implemented, for
-	      example, <a href="http://vote.minneapolismn.gov/results/2017/2017-mayor-tabulation">here</a>,
-	      the viewer can interactively choose which round to
-	      display. For example, the below shows part of the image
-	      shown for Round 3 of an election:
-	      <img width=900 hspace=10 src="mn-barchart.png" alt="Bar chart for 2017 Minnesota mayoral election">
-	      </p>
-
-	      All of the bar charts we have found for ranked-choice
-	      elections show the results on a round-by-round basis;
-	      candidates already eliminated will show zero votes in
-	      such a depiction.</p>
-
-	      <b>Other visualizations</b>
-
-	      <p>
-	      There are many additional ways to focus on particular
-	      aspects of the data encoded by the voters'
-	      rankings. Some examples can be found <a href="https://ranked.vote/us/me/2018/11/cd02/">here</a>.</p>
-
-	    </div>
-	  </div>
-	</div>
-
-	<!-- Code for collapsible adapted from https://alligator.io/css/collapsible/ -->
-	<div class="wrap-collabsible">
-	  <input id="collapsible-left" class="toggle" type="checkbox">
-	  <label for="collapsible-left" class="lbl-toggle">Why are first-round votes shown on the right?</label>
-	  <div class="collapsible-content">
-	    <div class="content-inner">
-	      <p>
-	      <p>
-	Voters act differently in ranked-choice systems than they do
-	in plurality systems. In general, comparing Round-1 votes can
-	be very misleading. Take, for example, the following
-	election:</p>
-	<table>
-	  <tr>
-	    <th> Ranking </th>
-	    <th> Number of ballots </th>
-	  </tr>
-	  <tr>
-	    <td> A > C </td>
-	    <td> 90 </td>
-	  </tr>
-	  <tr>
-	    <td> B > C </td>
-	    <td> 100 </td>
-	  </tr>
-	  <tr>
-	    <td> C > A </td>
-	    <td> 20 </td>
-	  </tr>
-	</table>
-	<p>
-	In Round 1, B has the most first-round votes with 100, A comes
-	in second at 90 and C is a distant third with 20. But everyone
-	who voted for C first prefers A as the second choice, so in
-	Round 2, Candidate wins 110 to 100. The 100 to 90 lead of
-	Candidate B in Round 1 is inconclusive. A natural, common
-	conclusion is that B would've won under a traditional,
-	plurality vote. But the 20 ballots ranking C then A suggest
-	that under a plurality vote many of those voters would've
-	voted for Candidate A to avoid wasting their vote on C.
-	The entire argument for instant-runoff voting is that
-	important information about voter preferences is contained in
-	the lower-ranked preferences. Ignoring that information, as
-	you do when looking only at first-round totals, can lead to
-	very misleading conclusions.</p>
-
-	<p>
-	Looking at the first-round votes is like looking at who is
-	leading a one mile race after the first quarter mile. It's
-	undeniably informative, and probably predictive, but in the
-	long run it doesn't determine the winner. The rules of a
-	one-mile race are that the first runner to complete the full
-	mile wins just as the rules of instant-runoff voting dictate
-	that the winner is the candidate who survives to the last
-	round and has the most votes at that point. What the
-	ranked-choice algorithm cares about is who has the fewest
-	votes during each round (and who is therefore
-	eliminated). That's what we've focused on in the accumulation
-	charts.</p>
-	    </div>
-	  </div>
-	</div>
-
-	<p>Interactive accumulation charts for historical elections: 
-	<!-- Initialize a select button -->
-	<select id="selectButton" class="myButton"></select></p>
+	<p>Historical election to show: <select id="selectButton" class="myButton"></select></p>
 
 	<div class = "warning-content">
 	<p id="data-note" class = "warning-content">
 	</p>
 	</div>
 
-	<p>Color ballots by: <select id="colorMenu" class="myMenu"></select> (descriptions below chart)</p>
-	<p>Max number of candidates to show: <select id="maxCandsMenu" class="myMenu"></select> (does not work for multi-winner elections)</p>
-	  <form id="dirn">
-	    <input type='radio' id="LtoR" name="mode">Round 1 on left</input>
-	    <input type='radio' id="RtoL" name="mode" checked>Round 1 on right</input>
+	Color ballots by: <select id="colorMenu" class="myMenu"></select> (descriptions below chart)<br>
+	Max number of candidates to show: <select id="maxCandsMenu" class="myMenu"></select> (not implemented for multi-winner elections)<br>
+	<form id="dirn">
+	Round order:  
+	    <input type='radio' id="LtoR" name="mode">First on left</input>
+	    <input type='radio' id="RtoL" name="mode" checked>First on right</input>
 	  </form> 
-
-	<!-- <i>Options for how the data are displayed are located below the chart</i> -->
-	<!-- var x = document.createElement("INPUT"); -->
-	<!-- x.setAttaribute("type", "radio"); -->
-	
-	<!-- Display mode: <select id="modeRadio" class="myMode"></select> -->
-	<!-- Color palette: <select id="colorButton" class="myButton"></select> -->
-
-<!-- 	<\!-- Initialize a select button -\-> -->
-<!-- 	<button id="resetButton" class="resetButton">Reset zoom</button> -->
-
-<!-- 	<script> -->
-<!-- $("#resetButton").click(() => { -->
-<!--   gElem.transition() -->
-<!--     .duration(750) -->
-<!--     .call(zoom.transform, d3.zoomIdentity); -->
-<!-- }); -->
-<!-- </script> -->
-
-<!-- <script> -->
-<!--   // div#container -->
-<!--   var newcontainer = d3.select('body').append('div') -->
-<!--     .attr('id','newcontainer') -->
-<!--   ; -->
-
-<!--   // svg#sky -->
-<!--   var newsky = newcontainer.append('svg') -->
-<!--     //.attr('height', 100) -->
-<!--     //.attr('width', 100) -->
-<!--     .attr('id', 'newsky') -->
-<!--   ; -->
-
-<!-- </script> -->
+	<i> Chart is zoomable; hover for information on ballots</i>
 
 	<!-- Create a div where the graph will take place -->
 	<div id="newcontainer" align="left"></div>
 
+	<!-- Code for producing chart based on selections -->
         <script src="accumulation-chart.js"></script>
 
 	<div id="datanote">
 	<i>Note: The data we use to create these charts may differ
 	slightly from the final, certified data. Also, there are
 	different, reasonable choices as to how to deal with the
-	various imperfect types of ranked ballots. As these charts are
-	to illustrate Accumulation Charts, we have not made a
-	determined effort to track down the specific rules used for
-	each election.</i>
+	various imperfect types of ranked ballots. As this page exists
+	primarily to illustrate Accumulation Charts, and due to
+	limited resources, we have not made a determined effort to
+	track down the specific rules used for each election.</i>
 
 	<br>
 	<br>
 	<b>Options for how ballots are colored:</b>
 	<ul>
 	  <li> <b>Color ballots by ranking:</b> This is the default option and what is described in all
-	  of the material at the top of this web page.
-	  <!-- <li> <b>Color ballots by round accumulated:</b> With this color scheme, the coloring reflects the -->
-	  <!-- divisions made by the black tick marks. It highlights how -->
-	  <!-- many votes each candidate accumulated in each round. -->
+	  of the material on the accompanying <a href="accumulation-chart-info.html" target="_blank">Information page</a>.
 	  <li> <b>Color ballots by first choice:</b>
 	  With this color scheme, each ballot is permanently
-	  colored according to the first-choice preference that
-	  appears on it.
-	    <li><b>Color ballots only by candidate:</b> With this color
-	      scheme, the height of the bar for any given ballot
-	      indicates how low of a preference that candidate
-	      was. This is similar to the default color scheme, except
-	      that the colors for already-eliminated candidates are
-	      surpressed. A full-height bar indicates first choice,
-	      half-height indicates second choice, third-height
-	      indicates third choice, etc.
+	  colored according to the first-choice preference on it.
+	  <li><b>Color ballots only by candidate:</b> With this color
+	    scheme, the height of the bar for any given ballot
+	    indicates how low of a preference that candidate
+	    was. This is similar to the default color scheme, except
+	    that the colors for already-eliminated candidates are
+	    surpressed. A full-height bar indicates first choice,
+	    half-height indicates second choice, third-height
+	    indicates third choice, etc.
+	  <li><b>Color ballots by segment:</b> This is similar to
+	    coloring by candidate, except the information about
+	    ranking is surpressed, so it is easy to tell how many
+	    votes a candidate accumulated in a given round.
 	</ul>
 	</div>
 	
