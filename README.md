@@ -1,5 +1,5 @@
 # accumulation-chart
-Interactive accumulation charts for ranked-choice voting
+Interactive accumulation charts for instant-runoff voting
 
 ## Outline of code
 
