@@ -580,6 +580,16 @@ function make_chart(orig_data, mymeta) {
 	.entries(orig_data);
     // console.log("New CandidateTotals",typeof(mydata),JSON.stringify(CandidateTotals));
 
+    // Get total votes for each candidate
+    var halfper = 0;
+    var candCast = d3.nest()
+	.key(function(d) { return d.Round; })
+	.rollup(function(v) { return d3.sum(v, function(d) { if (d.Segment == 1) { return d.Number; }})})
+	.entries(orig_data);
+    for (jj=0; jj < candCast.length; jj++) {
+	halfper = halfper + candCast[jj]['value'];
+    }
+
     // Create items array
     var SortedCandidates = Object.keys(CandidateTotals).map(function(mykey) {
 	return [CandidateTotals[mykey]['key'],CandidateTotals[mykey]['value']];
@@ -672,6 +682,8 @@ function make_chart(orig_data, mymeta) {
 	}
     }
 
+    // var halfper = 0
+    // console.log("total: ",halfper);
     // scale so that maximum-length bar fits in window
     var xFactor = (svgWidth-2*xOffset)*1.0/maxVotes;
     
@@ -685,6 +697,38 @@ function make_chart(orig_data, mymeta) {
 
     // y-value for first bar to draw
     var curY = yOffset + SortedCandidates.length*yDiff
+
+    // if (row == 1) {
+    // halfper = halfper + 
+
+    // Add in line showing 50 percent of votes cast in single-winner elections
+    console.log("een: ",elec_nwinners(mymeta));
+    if (elec_nwinners(mymeta) == 0) {
+	scaleper = xOffset + halfper * xFactor/2
+	mysvg.append("line")
+    	    .attr("x1",scaleper)
+    	    .attr("x2",scaleper)
+    	    .attr("y1",yDiff/3)
+    	    .attr("y2",curY)
+    	    .attr("stroke","#777777")
+    	    .attr("width",10);
+
+	mysvg.append("text")
+    	    .attr("x",scaleper)
+    	    .attr("y",yDiff/4)
+    	    .attr("font-size",24)
+    	    .attr("fill","#777777")
+    	    .attr("text-anchor","middle")
+    	    .text("50% of ballots cast"); 
+
+	mysvg.append("text")
+    	    .attr("x",scaleper)
+    	    .attr("y",curY+20)
+    	    .attr("font-size",24)
+    	    .attr("fill","#777777")
+    	    .attr("text-anchor","middle")
+    	    .text(Math.round(halfper/2).toLocaleString('en-US'));
+    }
 
     ////////////////////////////////////////////////////////////////////////////////
     // run through the candidates, printing bar for each one
